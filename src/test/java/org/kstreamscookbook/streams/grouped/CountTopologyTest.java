@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.kstreamscookbook.TopologyBuilder;
 import org.kstreamscookbook.TopologyTestBase;
 
-class CountByKeyTopologyTest extends TopologyTestBase {
+class CountTopologyTest extends TopologyTestBase {
 
     public static final String INPUT_TOPIC = "input-topic";
     public static final String OUTPUT_TOPIC = "output-topic";
@@ -21,7 +21,7 @@ class CountByKeyTopologyTest extends TopologyTestBase {
 
     @Override
     protected TopologyBuilder withTopologyBuilder() {
-        return new CountByKeyTopology(INPUT_TOPIC, OUTPUT_TOPIC);
+        return new CountTopology(INPUT_TOPIC, OUTPUT_TOPIC);
     }
 
     @Test

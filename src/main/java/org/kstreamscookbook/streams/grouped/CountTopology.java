@@ -8,12 +8,12 @@ import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.Produced;
 import org.kstreamscookbook.TopologyBuilder;
 
-public class CountByKeyTopology implements TopologyBuilder {
+public class CountTopology implements TopologyBuilder {
 
     private final String sourceTopic;
     private final String targetTopic;
 
-    public CountByKeyTopology(String sourceTopic, String targetTopic) {
+    public CountTopology(String sourceTopic, String targetTopic) {
         this.sourceTopic = sourceTopic;
         this.targetTopic = targetTopic;
     }
