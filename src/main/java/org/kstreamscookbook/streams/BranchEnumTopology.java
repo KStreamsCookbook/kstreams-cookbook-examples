@@ -12,7 +12,7 @@ import org.kstreamscookbook.TopologyBuilder;
 
 import java.util.Arrays;
 
-public class EnumBranchTopology implements TopologyBuilder {
+public class BranchEnumTopology implements TopologyBuilder {
 
     public static final String INPUT_TOPIC = "input-topic";
     public static final String OUTPUT_ABC = "output-abc";
@@ -30,6 +30,7 @@ public class EnumBranchTopology implements TopologyBuilder {
             this.matches = matches;
         }
     }
+
     @Override
     public Topology build() {
         Serde<String> stringSerde = Serdes.String();
@@ -41,8 +42,11 @@ public class EnumBranchTopology implements TopologyBuilder {
                         Characters.d_to_f.matches,
                         Characters.others.matches);
 
+        // refer to the branches via the prosition of the predicate in the enum
         branches[Characters.a_to_c.ordinal()].to(OUTPUT_ABC, Produced.with(stringSerde, stringSerde));
+
         branches[Characters.d_to_f.ordinal()].to(OUTPUT_DEF, Produced.with(stringSerde, stringSerde));
+
         branches[Characters.others.ordinal()].to(OUTPUT_OTHER, Produced.with(stringSerde, stringSerde));
 
         return builder.build();

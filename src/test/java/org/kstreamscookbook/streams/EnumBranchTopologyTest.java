@@ -22,7 +22,7 @@ class EnumBranchTopologyTest {
         Properties config = new Properties();
         config.put(StreamsConfig.APPLICATION_ID_CONFIG, "test");
         config.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
-        testDriver = new TopologyTestDriver(new EnumBranchTopology().build(), config);
+        testDriver = new TopologyTestDriver(new BranchEnumTopology().build(), config);
     }
 
     @AfterEach
@@ -35,22 +35,22 @@ class EnumBranchTopologyTest {
         StringSerializer stringSerializer = new StringSerializer();
         ConsumerRecordFactory<String, String> factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
 
-        testDriver.pipeInput(factory.create(EnumBranchTopology.INPUT_TOPIC, "one", "alpha"));
-        testDriver.pipeInput(factory.create(EnumBranchTopology.INPUT_TOPIC, "two", "delta"));
-        testDriver.pipeInput(factory.create(EnumBranchTopology.INPUT_TOPIC, "three", "tango"));
+        testDriver.pipeInput(factory.create(BranchEnumTopology.INPUT_TOPIC, "one", "alpha"));
+        testDriver.pipeInput(factory.create(BranchEnumTopology.INPUT_TOPIC, "two", "delta"));
+        testDriver.pipeInput(factory.create(BranchEnumTopology.INPUT_TOPIC, "three", "tango"));
 
         StringDeserializer stringDeserializer = new StringDeserializer();
 
         {
-            ProducerRecord<String, String> producerRecord = testDriver.readOutput(EnumBranchTopology.OUTPUT_ABC, stringDeserializer, stringDeserializer);
+            ProducerRecord<String, String> producerRecord = testDriver.readOutput(BranchEnumTopology.OUTPUT_ABC, stringDeserializer, stringDeserializer);
             OutputVerifier.compareKeyValue(producerRecord, "one", "alpha");
         }
         {
-            ProducerRecord<String, String> producerRecord = testDriver.readOutput(EnumBranchTopology.OUTPUT_DEF, stringDeserializer, stringDeserializer);
+            ProducerRecord<String, String> producerRecord = testDriver.readOutput(BranchEnumTopology.OUTPUT_DEF, stringDeserializer, stringDeserializer);
             OutputVerifier.compareKeyValue(producerRecord, "two", "delta");
         }
         {
-            ProducerRecord<String, String> producerRecord = testDriver.readOutput(EnumBranchTopology.OUTPUT_OTHER, stringDeserializer, stringDeserializer);
+            ProducerRecord<String, String> producerRecord = testDriver.readOutput(BranchEnumTopology.OUTPUT_OTHER, stringDeserializer, stringDeserializer);
             OutputVerifier.compareKeyValue(producerRecord, "three", "tango");
         }
     }
