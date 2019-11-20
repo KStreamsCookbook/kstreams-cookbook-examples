@@ -2,7 +2,6 @@ package org.kstreamscookbook.streams;
 
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
@@ -11,10 +10,9 @@ import org.kstreamscookbook.TopologyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Arrays;
 
-class FlatMapTopology implements TopologyBuilder {
+class FlatMapValuesTopology implements TopologyBuilder {
 
     public static final String INPUT_TOPIC = "input-topic";
     public static final String OUTPUT_TOPIC = "output-topic";
@@ -27,16 +25,8 @@ class FlatMapTopology implements TopologyBuilder {
 
         StreamsBuilder builder = new StreamsBuilder();
         builder.stream(INPUT_TOPIC, Consumed.with(stringSerde, stringSerde))
-                // KeyValueMapper#(k,s):Iterable<KeyValue<k,v>>
-                .flatMap((key, value) -> {
-                    String[] words = value.split("\\W+");
-                    List<KeyValue<String, String>> result = new LinkedList<>();
-                    for (String word : words) {
-                        result.add(KeyValue.pair(key, word));
-                    }
-                    return result;
-                })
-                // TODO this performs a re-keying
+                // ValueMapper#(s):Iterable<?>
+                .flatMapValues(value -> Arrays.asList(value.split("\\W+")))
                 .peek((key, value) -> log.info(value))
                 .to(OUTPUT_TOPIC, Produced.with(stringSerde, stringSerde));
         return builder.build();
