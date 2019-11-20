@@ -1,4 +1,4 @@
-package org.kstreamscookbook.streams;
+package org.kstreamscookbook.app;
 
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
