@@ -1,8 +1,10 @@
 package org.kstreamscookbook.streams;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 import org.apache.kafka.common.serialization.IntegerSerializer;
 import org.apache.kafka.streams.test.ConsumerRecordFactory;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.kstreamscookbook.TopologyBuilder;
 import org.kstreamscookbook.TopologyTestBase;
@@ -34,9 +36,9 @@ class ForEachTopologyTest extends TopologyTestBase {
         testDriver.pipeInput(factory.create(1001, 500, new Date().getTime()));
         testDriver.pipeInput(factory.create(1002, 1200, new Date().getTime()));
 
-        Assert.assertTrue(outputList.contains("1001:1000"));
-        Assert.assertFalse(outputList.contains("1001:500"));
-        Assert.assertTrue(outputList.contains("1002:1200"));
+        assertTrue(outputList.contains("1001:1000"));
+        assertFalse(outputList.contains("1001:500"));
+        assertTrue(outputList.contains("1002:1200"));
 
     }
 
