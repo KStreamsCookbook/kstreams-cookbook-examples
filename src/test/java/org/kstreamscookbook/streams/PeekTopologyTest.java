@@ -32,7 +32,7 @@ class PeekTopologyTest extends TopologyTestBase {
                 new ConsumerRecordFactory<>(FilterTopology.INPUT_TOPIC, integerSerializer, integerSerializer);
 
         // send in some purchases
-        // NOTE: we have to send a timestamp when sending Integers or Longs as the both key and value to distinguish between
+        // NOTE: we have to send a timestamp when sending Integers or Longs as both key and value to distinguish between
         // factory.create(K, V) and factory.create(V, timestampMs:long)
         // NOTE: Kafka has 3 notions of time - the test method below allows us to simulate Event time
         testDriver.pipeInput(factory.create(1001, 1000, new Date().getTime()));
