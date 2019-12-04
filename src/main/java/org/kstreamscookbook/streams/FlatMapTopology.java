@@ -24,21 +24,23 @@ class FlatMapTopology implements TopologyBuilder {
         Logger log = LoggerFactory.getLogger(this.getClass());
 
         Serde<String> stringSerde = Serdes.String();
+        var intSerde = Serdes.Integer();
 
         StreamsBuilder builder = new StreamsBuilder();
         builder.stream(INPUT_TOPIC, Consumed.with(stringSerde, stringSerde))
                 // KeyValueMapper#(k,s):Iterable<KeyValue<k,v>>
                 .flatMap((key, value) -> {
                     String[] words = value.split("\\W+");
-                    List<KeyValue<String, String>> result = new LinkedList<>();
+                    List<KeyValue<Integer, String>> result = new LinkedList<>();
+                    int index = 0;
                     for (String word : words) {
-                        result.add(KeyValue.pair(key, word));
+                        result.add(KeyValue.pair(index++, word));
                     }
                     return result;
                 })
                 // TODO this performs a re-keying
                 .peek((key, value) -> log.info(value))
-                .to(OUTPUT_TOPIC, Produced.with(stringSerde, stringSerde));
+                .to(OUTPUT_TOPIC, Produced.with(intSerde, stringSerde));
         return builder.build();
     }
 }
