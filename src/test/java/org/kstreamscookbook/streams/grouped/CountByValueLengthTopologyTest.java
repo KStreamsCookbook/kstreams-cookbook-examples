@@ -28,20 +28,22 @@ class CountByValueLengthTopologyTest extends TopologyTestBase {
     public void testCounts() {
         ConsumerRecordFactory<String, String> factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
 
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "."));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "b", ".."));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "b", "..."));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", ".."));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "..."));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "b", "."));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "ignored_a", "."));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "ignored_b", ".."));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "ignored_c", "..."));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "ignored_d", ".."));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "ignored_e", "..."));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "ignored_f", "."));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "ignored_g", "...."));
 
 
-        OutputVerifier.compareKeyValue(readNextRecord(), 1, 1l);
-        OutputVerifier.compareKeyValue(readNextRecord(), 2, 1l);
-        OutputVerifier.compareKeyValue(readNextRecord(), 3, 1l);
-        OutputVerifier.compareKeyValue(readNextRecord(), 2, 2l);
-        OutputVerifier.compareKeyValue(readNextRecord(), 3, 2l);
-        OutputVerifier.compareKeyValue(readNextRecord(), 1, 2l);
+        OutputVerifier.compareKeyValue(readNextRecord(), 1, 1L);
+        OutputVerifier.compareKeyValue(readNextRecord(), 2, 1L);
+        OutputVerifier.compareKeyValue(readNextRecord(), 3, 1L);
+        OutputVerifier.compareKeyValue(readNextRecord(), 2, 2L);
+        OutputVerifier.compareKeyValue(readNextRecord(), 3, 2L);
+        OutputVerifier.compareKeyValue(readNextRecord(), 1, 2L);
+        OutputVerifier.compareKeyValue(readNextRecord(), 4, 1L);
     }
 
     private ProducerRecord<Integer, Long> readNextRecord() {

@@ -29,19 +29,19 @@ class CountTopologyTest extends TopologyTestBase {
         ConsumerRecordFactory<String, String> factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
 
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "one"));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "b", "test"));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "b", "test"));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "test"));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "test"));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "b", "test"));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "b", "one"));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "b", "two"));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "one"));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "two"));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "b", "three"));
 
 
-        OutputVerifier.compareKeyValue(readNextRecord(), "a", 1l);
-        OutputVerifier.compareKeyValue(readNextRecord(), "b", 1l);
-        OutputVerifier.compareKeyValue(readNextRecord(), "b", 2l);
-        OutputVerifier.compareKeyValue(readNextRecord(), "a", 2l);
-        OutputVerifier.compareKeyValue(readNextRecord(), "a", 3l);
-        OutputVerifier.compareKeyValue(readNextRecord(), "b", 3l);
+        OutputVerifier.compareKeyValue(readNextRecord(), "a", 1L);
+        OutputVerifier.compareKeyValue(readNextRecord(), "b", 1L);
+        OutputVerifier.compareKeyValue(readNextRecord(), "b", 2L);
+        OutputVerifier.compareKeyValue(readNextRecord(), "a", 2L);
+        OutputVerifier.compareKeyValue(readNextRecord(), "a", 3L);
+        OutputVerifier.compareKeyValue(readNextRecord(), "b", 3L);
     }
 
     private ProducerRecord<String, Long> readNextRecord() {
