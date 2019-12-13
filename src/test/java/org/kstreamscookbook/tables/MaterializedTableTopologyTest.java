@@ -1,12 +1,14 @@
 package org.kstreamscookbook.tables;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.test.ConsumerRecordFactory;
 import org.apache.kafka.streams.test.OutputVerifier;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.kstreamscookbook.TopologyBuilder;
 import org.kstreamscookbook.TopologyTestBase;
@@ -39,12 +41,12 @@ class MaterializedTableTopologyTest extends TopologyTestBase {
 
         // check that the underlying state store contains the latest value for each key
         KeyValueStore<String, String> store = testDriver.getKeyValueStore("my-table");
-        Assert.assertEquals("two", store.get("a"));
-        Assert.assertEquals("one", store.get("b"));
+        assertEquals("two", store.get("a"));
+        assertEquals("one", store.get("b"));
 
         // pass in a tombstone
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "b", (String) null));
-        Assert.assertNull(store.get("b")); // no record exists for the key in the state store
+        assertNull(store.get("b")); // no record exists for the key in the state store
         expectNextKVPair("b", null); // the change was emitted as expected
     }
 

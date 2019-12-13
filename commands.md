@@ -5,11 +5,11 @@ Check input topic
     
 Delete input topic
 
-    ./kafka-topics --zookeeper localhost:2181 --delete --topic transactions
+    ./kafka-topics --bootstrap-server localhost:9092 localhost:2181 --delete --topic transactions
 
 Delete all topics
 
-    ./kafka-topics --zookeeper localhost:2181 --list | grep -v offsets | xargs -p -n 1 ./kafka-topics --zookeeper localhost:2181 --delete --topic
+    ./kafka-topics --bootstrap-server localhost:9092 --list | grep -v offsets | xargs -p -n 1 ./kafka-topics --zookeeper localhost:2181 --delete --topic
 
 Reset reader consumer group
 
