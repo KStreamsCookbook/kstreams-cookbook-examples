@@ -88,7 +88,7 @@ class WindowedAggregateTopologyTest extends TopologyTestBase {
 
         OutputVerifier.compareKeyValue(readNextRecord(), "a", "2 Days");
 
-        // No more records expected, beyond the grace period no reissuing of records
+        // No more records expected, window has expired
         assertNull(readNextRecord());
     }
 

@@ -1,5 +1,7 @@
 package org.kstreamscookbook.streams.grouped;
 
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -58,6 +60,7 @@ class WindowedGraceAggregateTopologyTest extends TopologyTestBase {
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "6", start.plus(6, ChronoUnit.MINUTES).toEpochMilli()));
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "7", start.plus(8, ChronoUnit.MINUTES).toEpochMilli()));
 
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "too late", start.plus(4, ChronoUnit.MINUTES).toEpochMilli()));
 
         OutputVerifier.compareKeyValue(readNextRecord(), "a", "1");
         OutputVerifier.compareKeyValue(readNextRecord(), "a", "1,2");
@@ -67,6 +70,8 @@ class WindowedGraceAggregateTopologyTest extends TopologyTestBase {
         OutputVerifier.compareKeyValue(readNextRecord(), "a", "1,2,3,4,late");
         OutputVerifier.compareKeyValue(readNextRecord(), "a", "5,6");
         OutputVerifier.compareKeyValue(readNextRecord(), "a", "5,6,7");
+
+        assertNull(readNextRecord());
     }
 
     private ProducerRecord<String, String> readNextRecord() {
