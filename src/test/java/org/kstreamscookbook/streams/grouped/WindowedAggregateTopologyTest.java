@@ -1,5 +1,7 @@
 package org.kstreamscookbook.streams.grouped;
 
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -51,11 +53,22 @@ class WindowedAggregateTopologyTest extends TopologyTestBase {
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "2", start.plus(1, ChronoUnit.MINUTES).toEpochMilli()));
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "3", start.plus(2, ChronoUnit.MINUTES).toEpochMilli()));
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "4", start.plus(3, ChronoUnit.MINUTES).toEpochMilli()));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "bad message", -1l));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "bad message", -1L));
         // second window starts here
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "5", start.plus(5, ChronoUnit.MINUTES).toEpochMilli()));
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "6", start.plus(6, ChronoUnit.MINUTES).toEpochMilli()));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "7", start.plus(8, ChronoUnit.MINUTES).toEpochMilli()));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "7", start.plus(7, ChronoUnit.MINUTES).toEpochMilli()));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "8", start.plus(8, ChronoUnit.MINUTES).toEpochMilli()));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "9", start.plus(9, ChronoUnit.MINUTES).toEpochMilli()));
+
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "1 Day", start.plus(1, ChronoUnit.DAYS).toEpochMilli()));
+
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "11", start.plus(8, ChronoUnit.MINUTES).toEpochMilli()));
+
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "2 Days", start.plus(2, ChronoUnit.DAYS).toEpochMilli()));
+
+        // beyond the implicit grace period of 1 day
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "12", start.plus(4, ChronoUnit.MINUTES).toEpochMilli()));
 
 
         OutputVerifier.compareKeyValue(readNextRecord(), "a", "1");
@@ -65,6 +78,18 @@ class WindowedAggregateTopologyTest extends TopologyTestBase {
         OutputVerifier.compareKeyValue(readNextRecord(), "a", "5");
         OutputVerifier.compareKeyValue(readNextRecord(), "a", "5,6");
         OutputVerifier.compareKeyValue(readNextRecord(), "a", "5,6,7");
+        OutputVerifier.compareKeyValue(readNextRecord(), "a", "5,6,7,8");
+        OutputVerifier.compareKeyValue(readNextRecord(), "a", "5,6,7,8,9");
+
+        OutputVerifier.compareKeyValue(readNextRecord(), "a", "1 Day");
+
+        // Late arrival causes reissuing of record
+        OutputVerifier.compareKeyValue(readNextRecord(), "a", "5,6,7,8,9,11");
+
+        OutputVerifier.compareKeyValue(readNextRecord(), "a", "2 Days");
+
+        // No more records expected, beyond the grace period no reissuing of records
+        assertNull(readNextRecord());
     }
 
     private ProducerRecord<String, String> readNextRecord() {

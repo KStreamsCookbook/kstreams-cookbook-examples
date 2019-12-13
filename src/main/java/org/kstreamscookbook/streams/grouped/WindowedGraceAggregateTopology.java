@@ -36,7 +36,7 @@ public class WindowedGraceAggregateTopology implements TopologyBuilder {
 
         builder.stream(sourceTopic, Consumed.with(stringSerde, stringSerde))
                 .groupByKey()
-                // allow for late
+                // limit late arrivals to 2 minutes
                 .windowedBy(
                         TimeWindows.of(Duration.ofMinutes(5)).grace(Duration.ofMinutes(2)))
                 .aggregate(() -> "",

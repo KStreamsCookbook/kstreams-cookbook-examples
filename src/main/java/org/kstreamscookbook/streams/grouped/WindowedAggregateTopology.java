@@ -37,6 +37,7 @@ public class WindowedAggregateTopology implements TopologyBuilder {
         builder.stream(sourceTopic, Consumed.with(stringSerde, stringSerde))
                 .groupByKey()
                 // messages are grouped into 5 minute windows, starting at midnight
+                // implicit grace period of 24 hours
                 .windowedBy(TimeWindows.of(Duration.ofMinutes(5)))
                 .aggregate(() -> "",
                         (k, v, agg) -> (agg.length() == 0) ? v : agg + "," + v,
