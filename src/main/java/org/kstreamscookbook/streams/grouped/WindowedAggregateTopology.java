@@ -10,10 +10,8 @@ import org.kstreamscookbook.TopologyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
-
 /**
- * Joins message values into a CSV string, in 5 minute windows.
+ * Joins message values into a CSV string, depending on the window defined.
  */
 public class WindowedAggregateTopology implements TopologyBuilder {
 
@@ -21,10 +19,12 @@ public class WindowedAggregateTopology implements TopologyBuilder {
 
     private final String sourceTopic;
     private final String targetTopic;
+    private final TimeWindows windows;
 
-    public WindowedAggregateTopology(String sourceTopic, String targetTopic) {
+    public WindowedAggregateTopology(String sourceTopic, String targetTopic, TimeWindows windows) {
         this.sourceTopic = sourceTopic;
         this.targetTopic = targetTopic;
+        this.windows = windows;
     }
 
     @Override
@@ -38,7 +38,7 @@ public class WindowedAggregateTopology implements TopologyBuilder {
                 .groupByKey()
                 // messages are grouped into 5 minute windows, starting at midnight
                 // Window is maintained for 24 hours
-                .windowedBy(TimeWindows.of(Duration.ofMinutes(5)))
+                .windowedBy(windows)
                 .aggregate(() -> "",
                         (k, v, agg) -> (agg.length() == 0) ? v : agg + "," + v,
                         Materialized.as("csv-aggregation-store").with(stringSerde, stringSerde))
