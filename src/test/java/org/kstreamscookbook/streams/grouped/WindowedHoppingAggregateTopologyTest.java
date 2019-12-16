@@ -56,34 +56,20 @@ public class WindowedHoppingAggregateTopologyTest extends TopologyTestBase {
     testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "1m", start.plus(1, ChronoUnit.MINUTES).toEpochMilli()));
     testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "3m", start.plus(3, ChronoUnit.MINUTES).toEpochMilli()));
 //    // second window starts here
-    testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "90s", start.plus(90, ChronoUnit.SECONDS).toEpochMilli()));
+    testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "4m", start.plus(4, ChronoUnit.MINUTES).toEpochMilli()));
 //    // late arriving message for first window
-    testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "45s (late)", start.plus(45, ChronoUnit.SECONDS).toEpochMilli()));
+    testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "2m (late)", start.plus(2, ChronoUnit.MINUTES).toEpochMilli()));
 
-    testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "120s", start.plus(120, ChronoUnit.SECONDS).toEpochMilli()));
-
+    testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "6m", start.plus(6, ChronoUnit.MINUTES).toEpochMilli()));
+    testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "7m", start.plus(7, ChronoUnit.MINUTES).toEpochMilli()));
 
     OutputVerifier.compareKeyValue(readNextRecord(), "a", "0");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s");
-
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s,90s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s,90s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "90s");
-
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s,45s (late)");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s,90s,45s (late)");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s,90s,45s (late)");
-
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s,90s,45s (late),120s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "90s,120s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "120s");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a", "1m");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a", "1m,3m");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a", "4m");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a", "1m,3m,2m (late)");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a", "4m,6m");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a", "7m");
 
     assertNull(readNextRecord());
   }
