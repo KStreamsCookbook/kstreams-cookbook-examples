@@ -20,7 +20,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class WindowedRollingAggregateTopologyTest extends TopologyTestBase {
+public class WindowedHoppingAggregateTopologyTest extends TopologyTestBase {
   public static final String INPUT_TOPIC = "input-topic";
   public static final String OUTPUT_TOPIC = "output-topic";
 
@@ -29,9 +29,9 @@ public class WindowedRollingAggregateTopologyTest extends TopologyTestBase {
 
   @Override
   protected TopologyBuilder withTopologyBuilder() {
-    // Window of 3 min width sliding by 1 min
+    // Window of 3 min width sliding by 3 min
     return new WindowedAggregateTopology(INPUT_TOPIC, OUTPUT_TOPIC,
-            TimeWindows.of(Duration.ofMinutes(3)).advanceBy(Duration.ofMinutes(1)));
+            TimeWindows.of(Duration.ofMinutes(3)).advanceBy(Duration.ofMinutes(3)));
   }
 
   @Override
@@ -53,8 +53,8 @@ public class WindowedRollingAggregateTopologyTest extends TopologyTestBase {
     Instant start = Instant.parse("2019-04-20T10:35:00.00Z");
     // first window starts here
     testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "0", start.toEpochMilli()));
-    testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "30s", start.plus(30, ChronoUnit.SECONDS).toEpochMilli()));
-    testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "60s", start.plus(60, ChronoUnit.SECONDS).toEpochMilli()));
+    testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "1m", start.plus(1, ChronoUnit.MINUTES).toEpochMilli()));
+    testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "3m", start.plus(3, ChronoUnit.MINUTES).toEpochMilli()));
 //    // second window starts here
     testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "90s", start.plus(90, ChronoUnit.SECONDS).toEpochMilli()));
 //    // late arriving message for first window
@@ -71,18 +71,18 @@ public class WindowedRollingAggregateTopologyTest extends TopologyTestBase {
     OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s");
     OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s");
     OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "60s");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s");
 
     OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s,90s");
     OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s,90s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "60s,90s");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a", "90s");
 
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,45s (late)");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s,45s (late)");
     OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s,90s,45s (late)");
     OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s,90s,45s (late)");
 
     OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s,90s,45s (late),120s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "60s,90s,120s");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a", "90s,120s");
     OutputVerifier.compareKeyValue(readNextRecord(), "a", "120s");
 
     assertNull(readNextRecord());
