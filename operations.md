@@ -122,6 +122,7 @@ hourlyResults.mavValues(countAndSum -> countAndSum.sum / countAndSum.count)
 
 Techniques
 * forking
+* windowing 
 * splitting via processor
 * punctuation
 * error handling
@@ -133,4 +134,8 @@ Techniques
   * JSON serializer
   * Protobuf serializer
   * custom serializer
+
+Under the covers
+* time
+* state stores
 
