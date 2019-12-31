@@ -65,14 +65,14 @@ class WindowedGraceAggregateTopologyTest extends TopologyTestBase {
 
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "too late", start.plus(4, ChronoUnit.MINUTES).toEpochMilli()));
 
-        OutputVerifier.compareKeyValue(readNextRecord(), "a", "1");
-        OutputVerifier.compareKeyValue(readNextRecord(), "a", "1,2");
-        OutputVerifier.compareKeyValue(readNextRecord(), "a", "1,2,3");
-        OutputVerifier.compareKeyValue(readNextRecord(), "a", "1,2,3,4");
-        OutputVerifier.compareKeyValue(readNextRecord(), "a", "5");
-        OutputVerifier.compareKeyValue(readNextRecord(), "a", "1,2,3,4,late");
-        OutputVerifier.compareKeyValue(readNextRecord(), "a", "5,6");
-        OutputVerifier.compareKeyValue(readNextRecord(), "a", "5,6,7");
+        OutputVerifier.compareValue(readNextRecord(), "1");
+        OutputVerifier.compareValue(readNextRecord(), "1,2");
+        OutputVerifier.compareValue(readNextRecord(), "1,2,3");
+        OutputVerifier.compareValue(readNextRecord(), "1,2,3,4");
+        OutputVerifier.compareValue(readNextRecord(), "5");
+        OutputVerifier.compareValue(readNextRecord(), "1,2,3,4,late");
+        OutputVerifier.compareValue(readNextRecord(), "5,6");
+        OutputVerifier.compareValue(readNextRecord(), "5,6,7");
 
         assertNull(readNextRecord());
     }

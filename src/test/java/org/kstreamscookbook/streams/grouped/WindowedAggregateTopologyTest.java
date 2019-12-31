@@ -73,22 +73,22 @@ class WindowedAggregateTopologyTest extends TopologyTestBase {
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "12", start.plus(4, ChronoUnit.MINUTES).toEpochMilli()));
 
 
-        OutputVerifier.compareKeyValue(readNextRecord(), "a", "1");
-        OutputVerifier.compareKeyValue(readNextRecord(), "a", "1,2");
-        OutputVerifier.compareKeyValue(readNextRecord(), "a", "1,2,3");
-        OutputVerifier.compareKeyValue(readNextRecord(), "a", "1,2,3,4");
-        OutputVerifier.compareKeyValue(readNextRecord(), "a", "5");
-        OutputVerifier.compareKeyValue(readNextRecord(), "a", "5,6");
-        OutputVerifier.compareKeyValue(readNextRecord(), "a", "5,6,7");
-        OutputVerifier.compareKeyValue(readNextRecord(), "a", "5,6,7,8");
-        OutputVerifier.compareKeyValue(readNextRecord(), "a", "5,6,7,8,9");
+        OutputVerifier.compareValue(readNextRecord(),"1");
+        OutputVerifier.compareValue(readNextRecord(), "1,2");
+        OutputVerifier.compareValue(readNextRecord(), "1,2,3");
+        OutputVerifier.compareValue(readNextRecord(), "1,2,3,4");
+        OutputVerifier.compareValue(readNextRecord(), "5");
+        OutputVerifier.compareValue(readNextRecord(), "5,6");
+        OutputVerifier.compareValue(readNextRecord(), "5,6,7");
+        OutputVerifier.compareValue(readNextRecord(), "5,6,7,8");
+        OutputVerifier.compareValue(readNextRecord(), "5,6,7,8,9");
 
-        OutputVerifier.compareKeyValue(readNextRecord(), "a", "1 Day");
+        OutputVerifier.compareValue(readNextRecord(), "1 Day");
 
         // Late arrival causes reissuing of record
-        OutputVerifier.compareKeyValue(readNextRecord(), "a", "5,6,7,8,9,11");
+        OutputVerifier.compareValue(readNextRecord(), "5,6,7,8,9,11");
 
-        OutputVerifier.compareKeyValue(readNextRecord(), "a", "2 Days");
+        OutputVerifier.compareValue(readNextRecord(), "2 Days");
 
         // No more records expected, window has expired
         assertNull(readNextRecord());

@@ -10,6 +10,11 @@ import org.kstreamscookbook.TopologyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
+import java.util.Locale;
+
 /**
  * Joins message values into a CSV string, depending on the window defined.
  */
@@ -33,6 +38,10 @@ public class WindowedAggregateTopology implements TopologyBuilder {
 
         Serde<String> stringSerde = Serdes.String();
 
+        DateTimeFormatter formatter =
+                DateTimeFormatter.ofLocalizedDateTime( FormatStyle.SHORT )
+                        .withLocale( Locale.UK )
+                        .withZone( ZoneId.systemDefault() );
 
         builder.stream(sourceTopic, Consumed.with(stringSerde, stringSerde))
                 .groupByKey()
@@ -45,15 +54,19 @@ public class WindowedAggregateTopology implements TopologyBuilder {
                 .toStream()
                 // the windowed key allows us access to metadata about the window, such as start and end times
                 .peek((windowedKey, v) -> {
+                    String key = windowedKey.key();
                     Window window = windowedKey.window();
                     // note that the start end end times of the window are known for all messages in a time window
-                    log.info("Window start time: {}; Window end time: {}; value: {}",
+                    log.info("Window start time: {}; Window end time: {}; key: {} -> value: {}",
                             window.startTime().toString(),
                             window.endTime().toString(),
+                            key,
                             v);
                 })
                 // transform the windowed key back to a String for serialization
-                .map((windowedKey, v) ->  new KeyValue<>(windowedKey.key(), v))
+                 .map((key, value) ->  new KeyValue<>(key.key() + "@" +
+                         formatter.format(key.window().startTime()) + "->" + formatter.format(key.window().endTime()), value))
+//                .map((windowedKey, v) ->  new KeyValue<>(windowedKey.key(), v))
                 .to(targetTopic, Produced.with(stringSerde, stringSerde));
 
         return builder.build();
