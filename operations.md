@@ -119,6 +119,10 @@ hourlyResults.mavValues(countAndSum -> countAndSum.sum / countAndSum.count)
 
 * suppress - spit out only one result per window KStreams 2.1+
 
+Introduction
+* What is Kafka?
+* What are Streams?
+* What are Kafka Streams?
 
 Techniques
 * forking
