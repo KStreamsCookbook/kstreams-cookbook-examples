@@ -32,7 +32,7 @@ class WindowedGraceAggregateTopologyTest extends TopologyTestBase {
 
     @Override
     protected TopologyBuilder withTopologyBuilder() {
-        return new WindowedAggregateTopology(INPUT_TOPIC, OUTPUT_TOPIC,
+        return new ParameterizedWindowedAggregateTopology(INPUT_TOPIC, OUTPUT_TOPIC,
                 TimeWindows.of(Duration.ofSeconds(300)).grace(Duration.ofSeconds(120)),
                 start);
     }

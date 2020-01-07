@@ -32,7 +32,7 @@ public class WindowedRollingAggregateTopologyTest extends TopologyTestBase {
   @Override
   protected TopologyBuilder withTopologyBuilder() {
     // Window of 3 min width sliding by 1 min
-    return new WindowedAggregateTopology(INPUT_TOPIC, OUTPUT_TOPIC,
+    return new ParameterizedWindowedAggregateTopology(INPUT_TOPIC, OUTPUT_TOPIC,
             TimeWindows.of(Duration.ofMinutes(3)).advanceBy(Duration.ofMinutes(1)),
             start);
   }

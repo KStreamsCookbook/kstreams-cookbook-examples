@@ -10,7 +10,6 @@ import org.kstreamscookbook.TopologyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -21,16 +20,20 @@ import java.util.Locale;
 /**
  * Joins message values into a CSV string, depending on the window defined.
  */
-public class WindowedAggregateTopology implements TopologyBuilder {
+public class ParameterizedWindowedAggregateTopology implements TopologyBuilder {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     private final String sourceTopic;
     private final String targetTopic;
+    private final TimeWindows windows;
+    private final Instant startTime;
 
-    public WindowedAggregateTopology(String sourceTopic, String targetTopic) {
+    public ParameterizedWindowedAggregateTopology(String sourceTopic, String targetTopic, TimeWindows windows, Instant startTime) {
         this.sourceTopic = sourceTopic;
         this.targetTopic = targetTopic;
+        this.windows = windows;
+        this.startTime = startTime;
     }
 
     @Override
@@ -39,11 +42,16 @@ public class WindowedAggregateTopology implements TopologyBuilder {
 
         Serde<String> stringSerde = Serdes.String();
 
+        DateTimeFormatter formatter =
+                DateTimeFormatter.ofLocalizedDateTime( FormatStyle.SHORT )
+                        .withLocale( Locale.UK )
+                        .withZone( ZoneId.systemDefault() );
+
         builder.stream(sourceTopic, Consumed.with(stringSerde, stringSerde))
                 .groupByKey()
                 // messages are grouped into 5 minute windows, starting at midnight
                 // Window is maintained for 24 hours
-                .windowedBy(TimeWindows.of(Duration.ofMinutes(5)))
+                .windowedBy(windows)
                 .aggregate(() -> "",
                         (k, v, agg) -> (agg.length() == 0) ? v : agg + "," + v,
                         Materialized.as("csv-aggregation-store").with(stringSerde, stringSerde))
@@ -60,10 +68,21 @@ public class WindowedAggregateTopology implements TopologyBuilder {
                             v);
                 })
                 // transform the windowed key back to a String for serialization
-                 .map((key, value) -> new KeyValue<>(key.key(), value))
+                 .map(mapByTimeWindow())
                 .to(targetTopic, Produced.with(stringSerde, stringSerde));
 
         return builder.build();
+    }
+
+    private KeyValueMapper<Windowed<String>, String, KeyValue<? extends String, ? extends String>> mapByTimeWindow() {
+        return (key, value) ->
+                new KeyValue<>(
+                        key.key() + "@(" +
+                                ChronoUnit.SECONDS.between(startTime,key.window().startTime()) +
+                                "," +
+                                ChronoUnit.SECONDS.between(startTime,key.window().endTime()) +
+                                ")",
+                        value);
     }
 
 }
