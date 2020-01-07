@@ -1,6 +1,4 @@
-package org.kstreamscookbook.streams.grouped;
-
-import static org.junit.jupiter.api.Assertions.assertNull;
+package org.kstreamscookbook.streams.windowed;
 
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -19,6 +17,8 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class WindowedGraceAggregateTopologyTest extends TopologyTestBase {
 

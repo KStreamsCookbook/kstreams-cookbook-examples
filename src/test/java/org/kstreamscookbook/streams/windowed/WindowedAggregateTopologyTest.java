@@ -1,12 +1,9 @@
-package org.kstreamscookbook.streams.grouped;
-
-import static org.junit.jupiter.api.Assertions.assertNull;
+package org.kstreamscookbook.streams.windowed;
 
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.kstream.TimeWindows;
 import org.apache.kafka.streams.processor.LogAndSkipOnInvalidTimestamp;
 import org.apache.kafka.streams.test.ConsumerRecordFactory;
 import org.apache.kafka.streams.test.OutputVerifier;
@@ -14,11 +11,12 @@ import org.junit.jupiter.api.Test;
 import org.kstreamscookbook.TopologyBuilder;
 import org.kstreamscookbook.TopologyTestBase;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class WindowedAggregateTopologyTest extends TopologyTestBase {
 
