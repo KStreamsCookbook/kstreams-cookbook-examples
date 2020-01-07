@@ -16,7 +16,7 @@ public class CopyApp {
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "stream-copy");
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
 
-        var topology = new CopyTopology().get();
+        var topology = new CopyTopology("input-topic", "output-topic").get();
         var kafkaStreams = new KafkaStreams(topology, props);
 
         var latch = new CountDownLatch(1);

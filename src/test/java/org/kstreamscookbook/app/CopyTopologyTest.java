@@ -13,9 +13,12 @@ import java.util.function.Supplier;
 
 class CopyTopologyTest extends TopologyTestBase {
 
+    private final static String INPUT_TOPIC = "input-topic";
+    private final static String OUTPUT_TOPIC = "output-topic";
+
     @Override
     protected Supplier<Topology> withTopology() {
-        return new CopyTopology();
+        return new CopyTopology(INPUT_TOPIC, OUTPUT_TOPIC);
     }
 
     @Test
@@ -26,10 +29,10 @@ class CopyTopologyTest extends TopologyTestBase {
         // NOTE: you have to keep using the topic name when sending String keys to distinguish between
         // factory.create(K, V) and factory.create(topicName:String, V)
         // otherwise you can set the topic name when creating the ConsumerRecordFactory
-        testDriver.pipeInput(factory.create(CopyTopology.INPUT_TOPIC, "key", "value"));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "key", "value"));
 
         var stringDeserializer = new StringDeserializer();
-        var producerRecord = testDriver.readOutput(CopyTopology.OUTPUT_TOPIC, stringDeserializer, stringDeserializer);
+        var producerRecord = testDriver.readOutput(OUTPUT_TOPIC, stringDeserializer, stringDeserializer);
 
         OutputVerifier.compareKeyValue(producerRecord, "key", "value");
     }

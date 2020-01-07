@@ -10,16 +10,21 @@ import java.util.function.Supplier;
 
 class CopyTopology implements Supplier<Topology> {
 
-    public static final String INPUT_TOPIC = "input-topic";
-    public static final String OUTPUT_TOPIC = "output-topic";
+    private final String inputTopic;
+    private final String outputTopic;
+
+    public CopyTopology(String inputTopic, String outputTopic) {
+        this.inputTopic = inputTopic;
+        this.outputTopic = outputTopic;
+    }
 
     @Override
     public Topology get() {
         var stringSerde = Serdes.String();
 
         var builder = new StreamsBuilder();
-        builder.stream(INPUT_TOPIC, Consumed.with(stringSerde, stringSerde))
-                .to(OUTPUT_TOPIC, Produced.with(stringSerde, stringSerde));
+        builder.stream(inputTopic, Consumed.with(stringSerde, stringSerde))
+                .to(outputTopic, Produced.with(stringSerde, stringSerde));
 
         return builder.build();
     }
