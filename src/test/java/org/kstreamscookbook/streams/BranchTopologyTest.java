@@ -4,30 +4,23 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.apache.kafka.streams.test.ConsumerRecordFactory;
 import org.apache.kafka.streams.test.OutputVerifier;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.kstreamscookbook.TopologyTestBase;
 
 import java.util.Properties;
+import java.util.function.Supplier;
 
-class BranchTopologyTest {
+class BranchTopologyTest extends TopologyTestBase {
 
-    private TopologyTestDriver testDriver;
-
-    @BeforeEach
-    void setUp() {
-        Properties config = new Properties();
-        config.put(StreamsConfig.APPLICATION_ID_CONFIG, "test");
-        config.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
-        testDriver = new TopologyTestDriver(new BranchTopology().get(), config);
-    }
-
-    @AfterEach
-    void tearDown() {
-        testDriver.close();
+    @Override
+    protected Supplier<Topology> withTopologySupplier() {
+        return new BranchTopology();
     }
 
     @Test
@@ -41,17 +34,8 @@ class BranchTopologyTest {
 
         StringDeserializer stringDeserializer = new StringDeserializer();
 
-        {
-            ProducerRecord<String, String> producerRecord = testDriver.readOutput(BranchTopology.OUTPUT_ABC, stringDeserializer, stringDeserializer);
-            OutputVerifier.compareKeyValue(producerRecord, "one", "alpha");
-        }
-        {
-            ProducerRecord<String, String> producerRecord = testDriver.readOutput(BranchTopology.OUTPUT_DEF, stringDeserializer, stringDeserializer);
-            OutputVerifier.compareKeyValue(producerRecord, "two", "delta");
-        }
-        {
-            ProducerRecord<String, String> producerRecord = testDriver.readOutput(BranchTopology.OUTPUT_OTHER, stringDeserializer, stringDeserializer);
-            OutputVerifier.compareKeyValue(producerRecord, "three", "tango");
-        }
+        OutputVerifier.compareKeyValue(testDriver.readOutput(BranchTopology.OUTPUT_ABC, stringDeserializer, stringDeserializer), "one", "alpha");
+        OutputVerifier.compareKeyValue(testDriver.readOutput(BranchTopology.OUTPUT_DEF, stringDeserializer, stringDeserializer), "two", "delta");
+        OutputVerifier.compareKeyValue(testDriver.readOutput(BranchTopology.OUTPUT_OTHER, stringDeserializer, stringDeserializer), "three", "tango");
     }
 }
