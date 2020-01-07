@@ -20,7 +20,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class WindowedRollingAggregateTopologyTest extends TopologyTestBase {
+public class WindowedHoppingAggregateTopologyTest extends TopologyTestBase {
   public static final String INPUT_TOPIC = "input-topic";
   public static final String OUTPUT_TOPIC = "output-topic";
 
