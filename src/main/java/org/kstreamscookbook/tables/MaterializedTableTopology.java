@@ -8,12 +8,13 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Produced;
 import org.apache.kafka.streams.state.KeyValueStore;
-import org.kstreamscookbook.TopologyBuilder;
+
+import java.util.function.Supplier;
 
 /**
  * Emits all changes to a table as events on an output stream
  */
-class MaterializedTableTopology implements TopologyBuilder {
+class MaterializedTableTopology implements Supplier<Topology> {
 
     private final String sourceTopic;
     private final String targetTopic;
@@ -24,7 +25,7 @@ class MaterializedTableTopology implements TopologyBuilder {
     }
 
     @Override
-    public Topology build() {
+    public Topology get() {
         Serde<String> stringSerde = Serdes.String();
 
         StreamsBuilder builder = new StreamsBuilder();

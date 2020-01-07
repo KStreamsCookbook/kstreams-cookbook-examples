@@ -7,12 +7,13 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Produced;
-import org.kstreamscookbook.TopologyBuilder;
+
+import java.util.function.Supplier;
 
 /**
  * Joins message values into a CSV string.
  */
-public class AggregateTopology implements TopologyBuilder {
+public class AggregateTopology implements Supplier<Topology> {
 
     private final String sourceTopic;
     private final String targetTopic;
@@ -23,7 +24,7 @@ public class AggregateTopology implements TopologyBuilder {
     }
 
     @Override
-    public Topology build() {
+    public Topology get() {
         StreamsBuilder builder = new StreamsBuilder();
 
         Serde<String> stringSerde = Serdes.String();

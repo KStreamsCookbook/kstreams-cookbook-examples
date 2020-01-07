@@ -8,11 +8,11 @@ import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Predicate;
 import org.apache.kafka.streams.kstream.Produced;
-import org.kstreamscookbook.TopologyBuilder;
 
 import java.util.Arrays;
+import java.util.function.Supplier;
 
-public class BranchEnumTopology implements TopologyBuilder {
+public class BranchEnumTopology implements Supplier<Topology> {
 
     public static final String INPUT_TOPIC = "input-topic";
     public static final String OUTPUT_ABC = "output-abc";
@@ -32,7 +32,7 @@ public class BranchEnumTopology implements TopologyBuilder {
     }
 
     @Override
-    public Topology build() {
+    public Topology get() {
         Serde<String> stringSerde = Serdes.String();
 
         StreamsBuilder builder = new StreamsBuilder();

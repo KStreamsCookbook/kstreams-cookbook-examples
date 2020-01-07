@@ -4,12 +4,12 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.TimeWindows;
 import org.apache.kafka.streams.processor.LogAndSkipOnInvalidTimestamp;
 import org.apache.kafka.streams.test.ConsumerRecordFactory;
 import org.apache.kafka.streams.test.OutputVerifier;
 import org.junit.jupiter.api.Test;
-import org.kstreamscookbook.TopologyBuilder;
 import org.kstreamscookbook.TopologyTestBase;
 
 import java.time.Duration;
@@ -17,6 +17,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -31,7 +32,7 @@ class WindowedGraceAggregateTopologyTest extends TopologyTestBase {
     private Instant start = Instant.parse("2019-04-20T10:35:00.00Z");
 
     @Override
-    protected TopologyBuilder withTopologyBuilder() {
+    protected Supplier<Topology> withTopologySupplier() {
         return new ParameterizedWindowedAggregateTopology(INPUT_TOPIC, OUTPUT_TOPIC,
                 TimeWindows.of(Duration.ofSeconds(300)).grace(Duration.ofSeconds(120)),
                 start);

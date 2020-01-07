@@ -2,14 +2,14 @@ package org.kstreamscookbook.streams;
 
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.Produced;
-import org.kstreamscookbook.TopologyBuilder;
 
-public class SelectKeyTopology implements TopologyBuilder {
+import java.util.function.Supplier;
+
+public class SelectKeyTopology implements Supplier<Topology> {
     private final String sourceTopic;
     private final String targetTopic;
 
@@ -19,7 +19,7 @@ public class SelectKeyTopology implements TopologyBuilder {
     }
 
     @Override
-    public Topology build() {
+    public Topology get() {
       Serde<String> stringSerde = Serdes.String();
 
       StreamsBuilder builder = new StreamsBuilder();

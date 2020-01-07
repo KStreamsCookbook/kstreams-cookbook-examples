@@ -1,27 +1,20 @@
 package org.kstreamscookbook.streams.windowed;
 
-import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.*;
-import org.kstreamscookbook.TopologyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
-import java.time.temporal.ChronoUnit;
-import java.util.Locale;
+import java.util.function.Supplier;
 
 /**
  * Joins message values into a CSV string, depending on the window defined.
  */
-public class WindowedAggregateTopology implements TopologyBuilder {
+public class WindowedAggregateTopology implements Supplier<Topology> {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -34,10 +27,9 @@ public class WindowedAggregateTopology implements TopologyBuilder {
     }
 
     @Override
-    public Topology build() {
-        StreamsBuilder builder = new StreamsBuilder();
-
-        Serde<String> stringSerde = Serdes.String();
+    public Topology get() {
+        var builder = new StreamsBuilder();
+        var stringSerde = Serdes.String();
 
         builder.stream(sourceTopic, Consumed.with(stringSerde, stringSerde))
                 .groupByKey()

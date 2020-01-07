@@ -22,7 +22,7 @@ class BranchTopologyTest {
         Properties config = new Properties();
         config.put(StreamsConfig.APPLICATION_ID_CONFIG, "test");
         config.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
-        testDriver = new TopologyTestDriver(new BranchTopology().build(), config);
+        testDriver = new TopologyTestDriver(new BranchTopology().get(), config);
     }
 
     @AfterEach

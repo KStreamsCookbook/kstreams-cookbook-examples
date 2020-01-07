@@ -1,12 +1,14 @@
 package org.kstreamscookbook;
 
 import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Supplier;
 
 public abstract class TopologyTestBase {
 
@@ -21,7 +23,7 @@ public abstract class TopologyTestBase {
         if (testProperties != null) {
             config.putAll(testProperties);
         }
-        testDriver = new TopologyTestDriver(withTopologyBuilder().build(), config);
+        testDriver = new TopologyTestDriver(withTopologySupplier().get(), config);
     }
 
     @AfterEach
@@ -29,7 +31,7 @@ public abstract class TopologyTestBase {
         testDriver.close();
     }
 
-    protected abstract TopologyBuilder withTopologyBuilder();
+    protected abstract Supplier<Topology> withTopologySupplier();
 
     protected Map<String, String> withProperties() {
         return null;

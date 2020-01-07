@@ -6,11 +6,11 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.Produced;
-import org.kstreamscookbook.TopologyBuilder;
 
 import java.util.List;
+import java.util.function.Supplier;
 
-class PeekTopology implements TopologyBuilder {
+class PeekTopology implements Supplier<Topology> {
 
     public static final String INPUT_TOPIC = "input-topic";
     public static final String OUTPUT_TOPIC = "output-topic";
@@ -23,7 +23,7 @@ class PeekTopology implements TopologyBuilder {
     }
 
     @Override
-    public Topology build() {
+    public Topology get() {
         Serde<Integer> integerSerde = Serdes.Integer();
 
         StreamsBuilder builder = new StreamsBuilder();

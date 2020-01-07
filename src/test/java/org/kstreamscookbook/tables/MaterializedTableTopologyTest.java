@@ -1,17 +1,19 @@
 package org.kstreamscookbook.tables;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.test.ConsumerRecordFactory;
 import org.apache.kafka.streams.test.OutputVerifier;
 import org.junit.jupiter.api.Test;
-import org.kstreamscookbook.TopologyBuilder;
 import org.kstreamscookbook.TopologyTestBase;
+
+import java.util.function.Supplier;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class MaterializedTableTopologyTest extends TopologyTestBase {
 
@@ -19,7 +21,7 @@ class MaterializedTableTopologyTest extends TopologyTestBase {
     public static final String OUTPUT_TOPIC = "output-topic";
 
     @Override
-    protected TopologyBuilder withTopologyBuilder() {
+    protected Supplier<Topology> withTopologySupplier() {
         return new MaterializedTableTopology(INPUT_TOPIC, OUTPUT_TOPIC);
     }
 

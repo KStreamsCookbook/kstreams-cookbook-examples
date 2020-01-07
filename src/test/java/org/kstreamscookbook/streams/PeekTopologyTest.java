@@ -1,27 +1,28 @@
 package org.kstreamscookbook.streams;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.apache.kafka.common.serialization.IntegerSerializer;
+import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.test.ConsumerRecordFactory;
 import org.apache.kafka.streams.test.OutputVerifier;
 import org.junit.jupiter.api.Test;
-import org.kstreamscookbook.TopologyBuilder;
 import org.kstreamscookbook.TopologyTestBase;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Supplier;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PeekTopologyTest extends TopologyTestBase {
 
     private List<String> outputList = new ArrayList<>();
 
     @Override
-    protected TopologyBuilder withTopologyBuilder() {
+    protected Supplier<Topology> withTopologySupplier() {
         return new PeekTopology().withOutputList(outputList);
     }
 

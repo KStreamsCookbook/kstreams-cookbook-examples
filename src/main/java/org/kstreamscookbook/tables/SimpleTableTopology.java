@@ -6,12 +6,13 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.Produced;
-import org.kstreamscookbook.TopologyBuilder;
+
+import java.util.function.Supplier;
 
 /**
  * Emits all changes to a table as events on an output stream
  */
-class SimpleTableTopology implements TopologyBuilder {
+class SimpleTableTopology implements Supplier<Topology> {
 
     private final String sourceTopic;
     private final String targetTopic;
@@ -22,7 +23,7 @@ class SimpleTableTopology implements TopologyBuilder {
     }
 
     @Override
-    public Topology build() {
+    public Topology get() {
         Serde<String> stringSerde = Serdes.String();
 
         StreamsBuilder builder = new StreamsBuilder();

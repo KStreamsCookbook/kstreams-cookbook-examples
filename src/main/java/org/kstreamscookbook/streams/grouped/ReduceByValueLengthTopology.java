@@ -9,15 +9,16 @@ import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.Grouped;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Produced;
-import org.kstreamscookbook.TopologyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.function.Supplier;
 
 /**
  * Transforms a stream of (keys : string values) into
  * a stream of (value lengths : CSV of the keys that sent values of those lengths)
  */
-public class ReduceByValueLengthTopology implements TopologyBuilder {
+public class ReduceByValueLengthTopology implements Supplier<Topology> {
 
     private final String sourceTopic;
     private final String targetTopic;
@@ -30,7 +31,7 @@ public class ReduceByValueLengthTopology implements TopologyBuilder {
     }
 
     @Override
-    public Topology build() {
+    public Topology get() {
         StreamsBuilder builder = new StreamsBuilder();
 
         Serde<String> stringSerde = Serdes.String();

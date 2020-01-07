@@ -4,17 +4,18 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.processor.LogAndSkipOnInvalidTimestamp;
 import org.apache.kafka.streams.test.ConsumerRecordFactory;
 import org.apache.kafka.streams.test.OutputVerifier;
 import org.junit.jupiter.api.Test;
-import org.kstreamscookbook.TopologyBuilder;
 import org.kstreamscookbook.TopologyTestBase;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -28,7 +29,7 @@ class WindowedAggregateTopologyTest extends TopologyTestBase {
 
 
     @Override
-    protected TopologyBuilder withTopologyBuilder() {
+    protected Supplier<Topology> withTopologySupplier() {
         return new WindowedAggregateTopology(INPUT_TOPIC, OUTPUT_TOPIC);
     }
 

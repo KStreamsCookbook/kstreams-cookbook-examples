@@ -7,11 +7,11 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
-import org.kstreamscookbook.TopologyBuilder;
 
 import java.util.Arrays;
+import java.util.function.Supplier;
 
-public class BranchTopology implements TopologyBuilder {
+public class BranchTopology implements Supplier<Topology> {
 
     public static final String INPUT_TOPIC = "input-topic";
     public static final String OUTPUT_ABC = "output-abc";
@@ -19,7 +19,7 @@ public class BranchTopology implements TopologyBuilder {
     public static final String OUTPUT_OTHER = "output-other";
 
     @Override
-    public Topology build() {
+    public Topology get() {
         Serde<String> stringSerde = Serdes.String();
 
         StreamsBuilder builder = new StreamsBuilder();

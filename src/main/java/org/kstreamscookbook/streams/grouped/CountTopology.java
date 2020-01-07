@@ -6,9 +6,10 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.Produced;
-import org.kstreamscookbook.TopologyBuilder;
 
-public class CountTopology implements TopologyBuilder {
+import java.util.function.Supplier;
+
+public class CountTopology implements Supplier<Topology> {
 
     private final String sourceTopic;
     private final String targetTopic;
@@ -19,7 +20,7 @@ public class CountTopology implements TopologyBuilder {
     }
 
     @Override
-    public Topology build() {
+    public Topology get() {
         StreamsBuilder builder = new StreamsBuilder();
 
         Serde<String> stringSerde = Serdes.String();

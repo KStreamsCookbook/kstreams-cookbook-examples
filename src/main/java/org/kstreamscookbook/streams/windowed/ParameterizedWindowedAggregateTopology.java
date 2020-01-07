@@ -6,7 +6,6 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.*;
-import org.kstreamscookbook.TopologyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,11 +15,12 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.time.temporal.ChronoUnit;
 import java.util.Locale;
+import java.util.function.Supplier;
 
 /**
  * Joins message values into a CSV string, depending on the window defined.
  */
-public class ParameterizedWindowedAggregateTopology implements TopologyBuilder {
+public class ParameterizedWindowedAggregateTopology implements Supplier<Topology> {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -37,7 +37,7 @@ public class ParameterizedWindowedAggregateTopology implements TopologyBuilder {
     }
 
     @Override
-    public Topology build() {
+    public Topology get() {
         StreamsBuilder builder = new StreamsBuilder();
 
         Serde<String> stringSerde = Serdes.String();

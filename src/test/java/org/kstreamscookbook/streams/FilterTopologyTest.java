@@ -3,18 +3,19 @@ package org.kstreamscookbook.streams;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.apache.kafka.common.serialization.IntegerSerializer;
+import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.test.ConsumerRecordFactory;
 import org.apache.kafka.streams.test.OutputVerifier;
 import org.junit.jupiter.api.Test;
-import org.kstreamscookbook.TopologyBuilder;
 import org.kstreamscookbook.TopologyTestBase;
 
 import java.util.Date;
+import java.util.function.Supplier;
 
 class FilterTopologyTest extends TopologyTestBase {
 
     @Override
-    protected TopologyBuilder withTopologyBuilder() {
+    protected Supplier<Topology> withTopologySupplier() {
         return new FilterTopology();
     }
 

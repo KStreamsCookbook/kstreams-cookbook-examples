@@ -22,7 +22,7 @@ class EnumBranchTopologyTest {
         Properties config = new Properties();
         config.put(StreamsConfig.APPLICATION_ID_CONFIG, "test");
         config.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
-        testDriver = new TopologyTestDriver(new BranchEnumTopology().build(), config);
+        testDriver = new TopologyTestDriver(new BranchEnumTopology().get(), config);
     }
 
     @AfterEach

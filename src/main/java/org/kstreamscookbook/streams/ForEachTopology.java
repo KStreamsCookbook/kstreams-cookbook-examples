@@ -5,11 +5,11 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
-import org.kstreamscookbook.TopologyBuilder;
 
 import java.util.List;
+import java.util.function.Supplier;
 
-class ForEachTopology implements TopologyBuilder {
+class ForEachTopology implements Supplier<Topology> {
 
     public static final String INPUT_TOPIC = "input-topic";
 
@@ -21,7 +21,7 @@ class ForEachTopology implements TopologyBuilder {
     }
 
     @Override
-    public Topology build() {
+    public Topology get() {
         Serde<Integer> integerSerde = Serdes.Integer();
 
         StreamsBuilder builder = new StreamsBuilder();
