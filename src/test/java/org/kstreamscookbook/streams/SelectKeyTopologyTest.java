@@ -17,19 +17,17 @@ public class SelectKeyTopologyTest extends TopologyTestBase {
   public static final String OUTPUT_TOPIC = "output-topic";
 
   @Override
-  protected Supplier<Topology> withTopologySupplier() {
+  protected Supplier<Topology> withTopology() {
     return new SelectKeyTopology(INPUT_TOPIC, OUTPUT_TOPIC);
   }
 
   @Test
   public void testSelectKey() {
-    StringSerializer stringSerializer = new StringSerializer();
-    ConsumerRecordFactory<String, String> factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
+    var stringSerializer = new StringSerializer();
+    var factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
     testDriver.pipeInput(factory.create(INPUT_TOPIC, "key", "newkey:value"));
 
-    StringDeserializer stringDeserializer = new StringDeserializer();
-    ProducerRecord<String, String> producerRecord = testDriver.readOutput(OUTPUT_TOPIC, stringDeserializer,stringDeserializer);
-
-    OutputVerifier.compareKeyValue(producerRecord, "newkey", "newkey:value");
+    var stringDeserializer = new StringDeserializer();
+    OutputVerifier.compareKeyValue(testDriver.readOutput(OUTPUT_TOPIC, stringDeserializer, stringDeserializer), "newkey", "newkey:value");
   }
 }

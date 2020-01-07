@@ -31,7 +31,7 @@ public class WindowedHoppingAggregateTopologyTest extends TopologyTestBase {
   Instant start = Instant.parse("2019-04-20T10:35:00.00Z");
 
   @Override
-  protected Supplier<Topology> withTopologySupplier() {
+  protected Supplier<Topology> withTopology() {
     // Window of 3 min width sliding by 1 min
     return new ParameterizedWindowedAggregateTopology(INPUT_TOPIC, OUTPUT_TOPIC,
             TimeWindows.of(Duration.ofMinutes(3)).advanceBy(Duration.ofMinutes(1)),
@@ -51,15 +51,14 @@ public class WindowedHoppingAggregateTopologyTest extends TopologyTestBase {
 
   @Test
   public void testWindowedAggregation() {
-    ConsumerRecordFactory<String, String> factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
+    var factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
 
-    //
     // first window starts here
     testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "0", start.toEpochMilli()));
     testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "60s", start.plus(60, ChronoUnit.SECONDS).toEpochMilli()));
-//    // second window starts here
+    // second window starts here
     testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "90s", start.plus(90, ChronoUnit.SECONDS).toEpochMilli()));
-//    // late arriving message for first window
+    // late arriving message for first window
     testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "45s (late)", start.plus(45, ChronoUnit.SECONDS).toEpochMilli()));
 
     testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "120s", start.plus(120, ChronoUnit.SECONDS).toEpochMilli()));

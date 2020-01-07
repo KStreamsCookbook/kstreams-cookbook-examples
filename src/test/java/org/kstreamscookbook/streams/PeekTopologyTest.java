@@ -22,14 +22,14 @@ class PeekTopologyTest extends TopologyTestBase {
     private List<String> outputList = new ArrayList<>();
 
     @Override
-    protected Supplier<Topology> withTopologySupplier() {
+    protected Supplier<Topology> withTopology() {
         return new PeekTopology().withOutputList(outputList);
     }
 
     @Test
     void testFiltered() {
-        IntegerSerializer integerSerializer = new IntegerSerializer();
-        ConsumerRecordFactory<Integer, Integer> factory =
+        var integerSerializer = new IntegerSerializer();
+        var factory =
                 new ConsumerRecordFactory<>(FilterTopology.INPUT_TOPIC, integerSerializer, integerSerializer);
 
         // send in some purchases
@@ -45,15 +45,9 @@ class PeekTopologyTest extends TopologyTestBase {
         assertTrue(outputList.contains("1002:1200"));
 
         IntegerDeserializer integerDeserializer = new IntegerDeserializer();
-        {
-            ProducerRecord<Integer, Integer> producerRecord = testDriver.readOutput(FilterTopology.OUTPUT_TOPIC, integerDeserializer, integerDeserializer);
-            OutputVerifier.compareKeyValue(producerRecord, 1001, 1000);
-        }
-        {
-            ProducerRecord<Integer, Integer> producerRecord = testDriver.readOutput(FilterTopology.OUTPUT_TOPIC, integerDeserializer, integerDeserializer);
-            OutputVerifier.compareKeyValue(producerRecord, 1002, 1200);
-        }
 
+        OutputVerifier.compareKeyValue(testDriver.readOutput(FilterTopology.OUTPUT_TOPIC, integerDeserializer, integerDeserializer), 1001, 1000);
+        OutputVerifier.compareKeyValue(testDriver.readOutput(FilterTopology.OUTPUT_TOPIC, integerDeserializer, integerDeserializer), 1002, 1200);
     }
 
 }

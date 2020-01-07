@@ -22,13 +22,13 @@ class CountTopologyTest extends TopologyTestBase {
     private LongDeserializer longDeserializer = new LongDeserializer();
 
     @Override
-    protected Supplier<Topology> withTopologySupplier() {
+    protected Supplier<Topology> withTopology() {
         return new CountTopology(INPUT_TOPIC, OUTPUT_TOPIC);
     }
 
     @Test
     public void testCounts() {
-        ConsumerRecordFactory<String, String> factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
+        var factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
 
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "one"));
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "b", "one"));

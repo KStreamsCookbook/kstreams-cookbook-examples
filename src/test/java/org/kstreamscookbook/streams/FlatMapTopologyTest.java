@@ -14,14 +14,14 @@ import java.util.function.Supplier;
 
 public class FlatMapTopologyTest extends TopologyTestBase {
     @Override
-    protected Supplier<Topology> withTopologySupplier() {
+    protected Supplier<Topology> withTopology() {
         return new FlatMapTopology();
     }
 
     @Test
     public void testMapping() {
-        StringSerializer stringSerializer = new StringSerializer();
-        ConsumerRecordFactory<String, String> factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
+        var stringSerializer = new StringSerializer();
+        var factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
         testDriver.pipeInput(factory.create(MapTopology.INPUT_TOPIC, "key", "This is a  sentence"));
 
         expectNextKVPair(0, "This");
@@ -30,6 +30,7 @@ public class FlatMapTopologyTest extends TopologyTestBase {
         expectNextKVPair(3, "sentence");
     }
 
+    // TODO refactor this out to make it consistent with other tests
     private void expectNextKVPair(Integer k, String v) {
         StringDeserializer stringDeserializer = new StringDeserializer();
         IntegerDeserializer integerDeserializer = new IntegerDeserializer();

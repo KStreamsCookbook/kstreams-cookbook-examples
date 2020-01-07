@@ -22,13 +22,13 @@ class AggregateByValueLengthTopologyTest extends TopologyTestBase {
     private StringDeserializer stringDeserializer = new StringDeserializer();
 
     @Override
-    protected Supplier<Topology> withTopologySupplier() {
+    protected Supplier<Topology> withTopology() {
         return new AggregateByValueLengthTopology(INPUT_TOPIC, OUTPUT_TOPIC);
     }
 
     @Test
     public void testAggregation() {
-        ConsumerRecordFactory<String, String> factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
+        var factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
 
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "."));
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "b", ".."));
@@ -46,6 +46,7 @@ class AggregateByValueLengthTopologyTest extends TopologyTestBase {
         OutputVerifier.compareKeyValue(readNextRecord(), 1, "a,b");
     }
 
+    // TODO consider refactoring out to make it consistent
     private ProducerRecord<Integer, String> readNextRecord() {
         return testDriver.readOutput(OUTPUT_TOPIC, integerDeserializer, stringDeserializer);
     }

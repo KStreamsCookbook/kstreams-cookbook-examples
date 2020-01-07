@@ -19,32 +19,23 @@ import java.util.function.Supplier;
 class EnumBranchTopologyTest extends TopologyTestBase {
 
     @Override
-    protected Supplier<Topology> withTopologySupplier() {
+    protected Supplier<Topology> withTopology() {
         return new BranchEnumTopology();
     }
 
     @Test
     void testCopied() {
-        StringSerializer stringSerializer = new StringSerializer();
-        ConsumerRecordFactory<String, String> factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
+        var stringSerializer = new StringSerializer();
+        var factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
 
         testDriver.pipeInput(factory.create(BranchEnumTopology.INPUT_TOPIC, "one", "alpha"));
         testDriver.pipeInput(factory.create(BranchEnumTopology.INPUT_TOPIC, "two", "delta"));
         testDriver.pipeInput(factory.create(BranchEnumTopology.INPUT_TOPIC, "three", "tango"));
 
-        StringDeserializer stringDeserializer = new StringDeserializer();
+        var stringDeserializer = new StringDeserializer();
 
-        {
-            ProducerRecord<String, String> producerRecord = testDriver.readOutput(BranchEnumTopology.OUTPUT_ABC, stringDeserializer, stringDeserializer);
-            OutputVerifier.compareKeyValue(producerRecord, "one", "alpha");
-        }
-        {
-            ProducerRecord<String, String> producerRecord = testDriver.readOutput(BranchEnumTopology.OUTPUT_DEF, stringDeserializer, stringDeserializer);
-            OutputVerifier.compareKeyValue(producerRecord, "two", "delta");
-        }
-        {
-            ProducerRecord<String, String> producerRecord = testDriver.readOutput(BranchEnumTopology.OUTPUT_OTHER, stringDeserializer, stringDeserializer);
-            OutputVerifier.compareKeyValue(producerRecord, "three", "tango");
-        }
+        OutputVerifier.compareKeyValue(testDriver.readOutput(BranchEnumTopology.OUTPUT_ABC, stringDeserializer, stringDeserializer), "one", "alpha");
+        OutputVerifier.compareKeyValue(testDriver.readOutput(BranchEnumTopology.OUTPUT_DEF, stringDeserializer, stringDeserializer), "two", "delta");
+        OutputVerifier.compareKeyValue(testDriver.readOutput(BranchEnumTopology.OUTPUT_OTHER, stringDeserializer, stringDeserializer), "three", "tango");
     }
 }

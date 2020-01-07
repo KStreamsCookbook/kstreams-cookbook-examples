@@ -16,14 +16,14 @@ public abstract class TopologyTestBase {
 
     @BeforeEach
     void setUp() {
-        Properties config = new Properties();
+        var config = new Properties();
         config.put(StreamsConfig.APPLICATION_ID_CONFIG, "test");
         config.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
         Map<String, String> testProperties = withProperties();
         if (testProperties != null) {
             config.putAll(testProperties);
         }
-        testDriver = new TopologyTestDriver(withTopologySupplier().get(), config);
+        testDriver = new TopologyTestDriver(withTopology().get(), config);
     }
 
     @AfterEach
@@ -31,8 +31,10 @@ public abstract class TopologyTestBase {
         testDriver.close();
     }
 
-    protected abstract Supplier<Topology> withTopologySupplier();
+    // TODO is there a better name for this?
+    protected abstract Supplier<Topology> withTopology();
 
+    // TODO is there a better name for this?
     protected Map<String, String> withProperties() {
         return null;
     }

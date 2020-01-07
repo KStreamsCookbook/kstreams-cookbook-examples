@@ -32,7 +32,7 @@ class WindowedGraceAggregateTopologyTest extends TopologyTestBase {
     private Instant start = Instant.parse("2019-04-20T10:35:00.00Z");
 
     @Override
-    protected Supplier<Topology> withTopologySupplier() {
+    protected Supplier<Topology> withTopology() {
         return new ParameterizedWindowedAggregateTopology(INPUT_TOPIC, OUTPUT_TOPIC,
                 TimeWindows.of(Duration.ofSeconds(300)).grace(Duration.ofSeconds(120)),
                 start);
@@ -51,7 +51,7 @@ class WindowedGraceAggregateTopologyTest extends TopologyTestBase {
 
     @Test
     public void testWindowedAggregation() {
-        ConsumerRecordFactory<String, String> factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
+        var factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
 
         // first window starts here
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "0s", start.toEpochMilli()));

@@ -21,14 +21,14 @@ class MaterializedTableTopologyTest extends TopologyTestBase {
     public static final String OUTPUT_TOPIC = "output-topic";
 
     @Override
-    protected Supplier<Topology> withTopologySupplier() {
+    protected Supplier<Topology> withTopology() {
         return new MaterializedTableTopology(INPUT_TOPIC, OUTPUT_TOPIC);
     }
 
     @Test
     void testCopied() {
-        StringSerializer stringSerializer = new StringSerializer();
-        ConsumerRecordFactory<String, String> factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
+        var stringSerializer = new StringSerializer();
+        var factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
 
         // NOTE: you have to keep using the topic name when sending String keys to distinguish between
         // factory.create(K, V) and factory.create(topicName:String, V)
@@ -52,9 +52,10 @@ class MaterializedTableTopologyTest extends TopologyTestBase {
         expectNextKVPair("b", null); // the change was emitted as expected
     }
 
+    // TODO refactor this out to make it consistent with other tests
     private void expectNextKVPair(String k, String v) {
-        StringDeserializer stringDeserializer = new StringDeserializer();
-        ProducerRecord<String, String> producerRecord = testDriver.readOutput(OUTPUT_TOPIC, stringDeserializer, stringDeserializer);
+        var stringDeserializer = new StringDeserializer();
+        var producerRecord = testDriver.readOutput(OUTPUT_TOPIC, stringDeserializer, stringDeserializer);
         OutputVerifier.compareKeyValue(producerRecord, k, v);
     }
 

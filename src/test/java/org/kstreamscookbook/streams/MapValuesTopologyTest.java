@@ -14,19 +14,17 @@ import java.util.function.Supplier;
 class MapValuesTopologyTest extends TopologyTestBase {
 
     @Override
-    protected Supplier<Topology> withTopologySupplier() {
+    protected Supplier<Topology> withTopology() {
         return new MapValuesTopology();
     }
 
     @Test
     void testCopied() {
-        StringSerializer stringSerializer = new StringSerializer();
-        ConsumerRecordFactory<String, String> factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
+        var stringSerializer = new StringSerializer();
+        var factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
         testDriver.pipeInput(factory.create(MapValuesTopology.INPUT_TOPIC, "key", "value"));
 
-        StringDeserializer stringDeserializer = new StringDeserializer();
-        ProducerRecord<String, String> producerRecord = testDriver.readOutput(MapValuesTopology.OUTPUT_TOPIC, stringDeserializer, stringDeserializer);
-
-        OutputVerifier.compareKeyValue(producerRecord, "key", "VALUE");
+        var stringDeserializer = new StringDeserializer();
+        OutputVerifier.compareKeyValue(testDriver.readOutput(MapValuesTopology.OUTPUT_TOPIC, stringDeserializer, stringDeserializer), "key", "VALUE");
     }
 }

@@ -22,13 +22,13 @@ class ReduceByValueLengthTopologyTest extends TopologyTestBase {
     private StringDeserializer stringDeserializer = new StringDeserializer();
 
     @Override
-    protected Supplier<Topology> withTopologySupplier() {
+    protected Supplier<Topology> withTopology() {
         return new ReduceByValueLengthTopology(INPUT_TOPIC, OUTPUT_TOPIC);
     }
 
     @Test
     public void testReduce() {
-        ConsumerRecordFactory<String, String> factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
+        var factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
 
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "."));
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "b", ".."));

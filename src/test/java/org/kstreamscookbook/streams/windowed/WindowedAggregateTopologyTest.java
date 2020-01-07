@@ -29,7 +29,7 @@ class WindowedAggregateTopologyTest extends TopologyTestBase {
 
 
     @Override
-    protected Supplier<Topology> withTopologySupplier() {
+    protected Supplier<Topology> withTopology() {
         return new WindowedAggregateTopology(INPUT_TOPIC, OUTPUT_TOPIC);
     }
 
@@ -46,9 +46,9 @@ class WindowedAggregateTopologyTest extends TopologyTestBase {
 
     @Test
     public void testWindowedAggregation() {
-        ConsumerRecordFactory<String, String> factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
+        var factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
 
-        Instant start = Instant.parse("2019-04-20T10:35:00.00Z");
+        var start = Instant.parse("2019-04-20T10:35:00.00Z");
 
         // first window starts here
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "1", start.toEpochMilli()));

@@ -19,20 +19,20 @@ import java.util.function.Supplier;
 class BranchTopologyTest extends TopologyTestBase {
 
     @Override
-    protected Supplier<Topology> withTopologySupplier() {
+    protected Supplier<Topology> withTopology() {
         return new BranchTopology();
     }
 
     @Test
     void testCopied() {
-        StringSerializer stringSerializer = new StringSerializer();
-        ConsumerRecordFactory<String, String> factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
+        var stringSerializer = new StringSerializer();
+        var factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
 
         testDriver.pipeInput(factory.create(BranchTopology.INPUT_TOPIC, "one", "alpha"));
         testDriver.pipeInput(factory.create(BranchTopology.INPUT_TOPIC, "two", "delta"));
         testDriver.pipeInput(factory.create(BranchTopology.INPUT_TOPIC, "three", "tango"));
 
-        StringDeserializer stringDeserializer = new StringDeserializer();
+        var stringDeserializer = new StringDeserializer();
 
         OutputVerifier.compareKeyValue(testDriver.readOutput(BranchTopology.OUTPUT_ABC, stringDeserializer, stringDeserializer), "one", "alpha");
         OutputVerifier.compareKeyValue(testDriver.readOutput(BranchTopology.OUTPUT_DEF, stringDeserializer, stringDeserializer), "two", "delta");

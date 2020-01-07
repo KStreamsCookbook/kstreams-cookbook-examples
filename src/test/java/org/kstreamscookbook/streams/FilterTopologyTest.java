@@ -15,15 +15,14 @@ import java.util.function.Supplier;
 class FilterTopologyTest extends TopologyTestBase {
 
     @Override
-    protected Supplier<Topology> withTopologySupplier() {
+    protected Supplier<Topology> withTopology() {
         return new FilterTopology();
     }
 
     @Test
     void testFiltered() {
-        IntegerSerializer integerSerializer = new IntegerSerializer();
-        ConsumerRecordFactory<Integer, Integer> factory =
-                new ConsumerRecordFactory<>(FilterTopology.INPUT_TOPIC, integerSerializer, integerSerializer);
+        var integerSerializer = new IntegerSerializer();
+        var factory = new ConsumerRecordFactory<>(FilterTopology.INPUT_TOPIC, integerSerializer, integerSerializer);
 
         // send in some purchases
         // NOTE: we have to send a timestamp when sending Integers or Longs as the both key and value to distinguish between
@@ -33,16 +32,9 @@ class FilterTopologyTest extends TopologyTestBase {
         testDriver.pipeInput(factory.create(1001, 500, new Date().getTime()));
         testDriver.pipeInput(factory.create(1002, 1200, new Date().getTime()));
 
-        IntegerDeserializer integerDeserializer = new IntegerDeserializer();
-        {
-            ProducerRecord<Integer, Integer> producerRecord = testDriver.readOutput(FilterTopology.OUTPUT_TOPIC, integerDeserializer, integerDeserializer);
-            OutputVerifier.compareKeyValue(producerRecord, 1001, 1000);
-        }
-        {
-            ProducerRecord<Integer, Integer> producerRecord = testDriver.readOutput(FilterTopology.OUTPUT_TOPIC, integerDeserializer, integerDeserializer);
-            OutputVerifier.compareKeyValue(producerRecord, 1002, 1200);
-        }
-
+        var integerDeserializer = new IntegerDeserializer();
+        OutputVerifier.compareKeyValue(testDriver.readOutput(FilterTopology.OUTPUT_TOPIC, integerDeserializer, integerDeserializer), 1001, 1000);
+        OutputVerifier.compareKeyValue(testDriver.readOutput(FilterTopology.OUTPUT_TOPIC, integerDeserializer, integerDeserializer), 1002, 1200);
     }
 
 }

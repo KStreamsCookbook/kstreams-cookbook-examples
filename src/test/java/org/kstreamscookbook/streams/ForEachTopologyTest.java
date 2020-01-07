@@ -19,14 +19,14 @@ class ForEachTopologyTest extends TopologyTestBase {
     private List<String> outputList = new ArrayList<>();
 
     @Override
-    protected Supplier<Topology> withTopologySupplier() {
+    protected Supplier<Topology> withTopology() {
         return new ForEachTopology().withOutputList(outputList);
     }
 
     @Test
     void testFiltered() {
-        IntegerSerializer integerSerializer = new IntegerSerializer();
-        ConsumerRecordFactory<Integer, Integer> factory =
+        var integerSerializer = new IntegerSerializer();
+        var factory =
                 new ConsumerRecordFactory<>(FilterTopology.INPUT_TOPIC, integerSerializer, integerSerializer);
 
         // send in some purchases
