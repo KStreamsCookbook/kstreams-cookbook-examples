@@ -27,11 +27,14 @@ public class WindowedRollingAggregateTopologyTest extends TopologyTestBase {
   private StringSerializer stringSerializer = new StringSerializer();
   private StringDeserializer stringDeserializer = new StringDeserializer();
 
+  Instant start = Instant.parse("2019-04-20T10:35:00.00Z");
+
   @Override
   protected TopologyBuilder withTopologyBuilder() {
     // Window of 3 min width sliding by 1 min
     return new WindowedAggregateTopology(INPUT_TOPIC, OUTPUT_TOPIC,
-            TimeWindows.of(Duration.ofMinutes(3)).advanceBy(Duration.ofMinutes(1)));
+            TimeWindows.of(Duration.ofMinutes(3)).advanceBy(Duration.ofMinutes(1)),
+            start);
   }
 
   @Override
@@ -50,10 +53,8 @@ public class WindowedRollingAggregateTopologyTest extends TopologyTestBase {
     ConsumerRecordFactory<String, String> factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
 
     //
-    Instant start = Instant.parse("2019-04-20T10:35:00.00Z");
     // first window starts here
     testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "0", start.toEpochMilli()));
-    testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "30s", start.plus(30, ChronoUnit.SECONDS).toEpochMilli()));
     testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "60s", start.plus(60, ChronoUnit.SECONDS).toEpochMilli()));
 //    // second window starts here
     testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "90s", start.plus(90, ChronoUnit.SECONDS).toEpochMilli()));
@@ -63,27 +64,25 @@ public class WindowedRollingAggregateTopologyTest extends TopologyTestBase {
     testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "120s", start.plus(120, ChronoUnit.SECONDS).toEpochMilli()));
 
 
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "60s");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a@(-120,60)", "0");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a@(-60,120)", "0");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a@(0,180)", "0");
 
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s,90s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s,90s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "60s,90s");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a@(-60,120)", "0,60s");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a@(0,180)", "0,60s");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a@(60,240)", "60s");
 
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,45s (late)");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s,90s,45s (late)");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s,90s,45s (late)");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a@(-60,120)", "0,60s,90s");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a@(0,180)", "0,60s,90s");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a@(60,240)", "60s,90s");
 
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "0,30s,60s,90s,45s (late),120s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "60s,90s,120s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a", "120s");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a@(-120,60)", "0,45s (late)");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a@(-60,120)", "0,60s,90s,45s (late)");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a@(0,180)", "0,60s,90s,45s (late)");
+
+    OutputVerifier.compareKeyValue(readNextRecord(), "a@(0,180)", "0,60s,90s,45s (late),120s");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a@(60,240)", "60s,90s,120s");
+    OutputVerifier.compareKeyValue(readNextRecord(), "a@(120,300)", "120s");
 
     assertNull(readNextRecord());
   }

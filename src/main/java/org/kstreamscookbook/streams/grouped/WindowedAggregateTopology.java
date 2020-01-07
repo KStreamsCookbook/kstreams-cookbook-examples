@@ -10,9 +10,12 @@ import org.kstreamscookbook.TopologyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.time.temporal.ChronoUnit;
 import java.util.Locale;
 
 /**
@@ -25,11 +28,13 @@ public class WindowedAggregateTopology implements TopologyBuilder {
     private final String sourceTopic;
     private final String targetTopic;
     private final TimeWindows windows;
+    private final Instant startTime;
 
-    public WindowedAggregateTopology(String sourceTopic, String targetTopic, TimeWindows windows) {
+    public WindowedAggregateTopology(String sourceTopic, String targetTopic, TimeWindows windows, Instant startTime) {
         this.sourceTopic = sourceTopic;
         this.targetTopic = targetTopic;
         this.windows = windows;
+        this.startTime = startTime;
     }
 
     @Override
@@ -64,9 +69,14 @@ public class WindowedAggregateTopology implements TopologyBuilder {
                             v);
                 })
                 // transform the windowed key back to a String for serialization
-                 .map((key, value) ->  new KeyValue<>(key.key() + "@" +
-                         formatter.format(key.window().startTime()) + "->" + formatter.format(key.window().endTime()), value))
-//                .map((windowedKey, v) ->  new KeyValue<>(windowedKey.key(), v))
+                 .map((key, value) ->
+                         new KeyValue<>(
+                                 key.key() + "@(" +
+                                         ChronoUnit.SECONDS.between(startTime,key.window().startTime()) +
+                                         "," +
+                                         ChronoUnit.SECONDS.between(startTime,key.window().endTime()) +
+                                         ")",
+                                 value))
                 .to(targetTopic, Produced.with(stringSerde, stringSerde));
 
         return builder.build();

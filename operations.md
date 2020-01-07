@@ -139,7 +139,21 @@ Techniques
   * Protobuf serializer
   * custom serializer
 
+* Administration
+  * Monitoring
+  * Space requirements
+  * Recovery
+  * Rebalancing
+
 Under the covers
 * time
 * state stores
+  * RocksDB
+  * RocksDB compression?
+  * Replace state store (REDIS?)
+  
+* Upgrading Stream Applications
+
+* KSQL?
+
 

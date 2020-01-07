@@ -28,10 +28,13 @@ class WindowedGraceAggregateTopologyTest extends TopologyTestBase {
     private StringSerializer stringSerializer = new StringSerializer();
     private StringDeserializer stringDeserializer = new StringDeserializer();
 
+    private Instant start = Instant.parse("2019-04-20T10:35:00.00Z");
+
     @Override
     protected TopologyBuilder withTopologyBuilder() {
         return new WindowedAggregateTopology(INPUT_TOPIC, OUTPUT_TOPIC,
-                TimeWindows.of(Duration.ofMinutes(5)).grace(Duration.ofMinutes(2)));
+                TimeWindows.of(Duration.ofSeconds(300)).grace(Duration.ofSeconds(120)),
+                start);
     }
 
     @Override
@@ -49,30 +52,28 @@ class WindowedGraceAggregateTopologyTest extends TopologyTestBase {
     public void testWindowedAggregation() {
         ConsumerRecordFactory<String, String> factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
 
-        //
-        Instant start = Instant.parse("2019-04-20T10:35:00.00Z");
         // first window starts here
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "1", start.toEpochMilli()));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "2", start.plus(1, ChronoUnit.MINUTES).toEpochMilli()));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "3", start.plus(2, ChronoUnit.MINUTES).toEpochMilli()));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "4", start.plus(3, ChronoUnit.MINUTES).toEpochMilli()));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "0s", start.toEpochMilli()));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "60s", start.plus(60, ChronoUnit.SECONDS).toEpochMilli()));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "120s", start.plus(120, ChronoUnit.SECONDS).toEpochMilli()));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "180s", start.plus(180, ChronoUnit.SECONDS).toEpochMilli()));
         // second window starts here
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "5", start.plus(5, ChronoUnit.MINUTES).toEpochMilli()));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "300s", start.plus(300, ChronoUnit.SECONDS).toEpochMilli()));
         // late arriving message for first window
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "late", start.plus(4, ChronoUnit.MINUTES).toEpochMilli()));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "6", start.plus(6, ChronoUnit.MINUTES).toEpochMilli()));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "7", start.plus(8, ChronoUnit.MINUTES).toEpochMilli()));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "240s (late)", start.plus(240, ChronoUnit.SECONDS).toEpochMilli()));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "360s", start.plus(360, ChronoUnit.SECONDS).toEpochMilli()));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "420s", start.plus(420, ChronoUnit.SECONDS).toEpochMilli()));
 
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "too late", start.plus(4, ChronoUnit.MINUTES).toEpochMilli()));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "240s (too late)", start.plus(4, ChronoUnit.SECONDS).toEpochMilli()));
 
-        OutputVerifier.compareValue(readNextRecord(), "1");
-        OutputVerifier.compareValue(readNextRecord(), "1,2");
-        OutputVerifier.compareValue(readNextRecord(), "1,2,3");
-        OutputVerifier.compareValue(readNextRecord(), "1,2,3,4");
-        OutputVerifier.compareValue(readNextRecord(), "5");
-        OutputVerifier.compareValue(readNextRecord(), "1,2,3,4,late");
-        OutputVerifier.compareValue(readNextRecord(), "5,6");
-        OutputVerifier.compareValue(readNextRecord(), "5,6,7");
+        OutputVerifier.compareKeyValue(readNextRecord(), "a@(0,300)","0s");
+        OutputVerifier.compareKeyValue(readNextRecord(), "a@(0,300)","0s,60s");
+        OutputVerifier.compareKeyValue(readNextRecord(), "a@(0,300)","0s,60s,120s");
+        OutputVerifier.compareKeyValue(readNextRecord(), "a@(0,300)","0s,60s,120s,180s");
+        OutputVerifier.compareKeyValue(readNextRecord(), "a@(300,600)","300s");
+        OutputVerifier.compareKeyValue(readNextRecord(), "a@(0,300)","0s,60s,120s,180s,240s (late)");
+        OutputVerifier.compareKeyValue(readNextRecord(), "a@(300,600)","300s,360s");
+        OutputVerifier.compareKeyValue(readNextRecord(), "a@(300,600)","300s,360s,420s");
 
         assertNull(readNextRecord());
     }
