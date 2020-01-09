@@ -19,7 +19,7 @@ import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-class WindowedAggregateTopologyTest extends TopologyTestBase {
+class TimeWindowedAggregateTopologyTest extends TopologyTestBase {
 
     public static final String INPUT_TOPIC = "input-topic";
     public static final String OUTPUT_TOPIC = "output-topic";
@@ -30,7 +30,7 @@ class WindowedAggregateTopologyTest extends TopologyTestBase {
 
     @Override
     protected Supplier<Topology> withTopology() {
-        return new WindowedAggregateTopology(INPUT_TOPIC, OUTPUT_TOPIC);
+        return new TimeWindowedAggregateTopology(INPUT_TOPIC, OUTPUT_TOPIC);
     }
 
     @Override
