@@ -14,16 +14,18 @@ import java.util.function.Supplier;
 /**
  * Joins message values into a CSV string, depending on the window defined.
  */
-public class WindowedAggregateTopology implements Supplier<Topology> {
+public class SessionWindowedAggregateTopology implements Supplier<Topology> {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     private final String sourceTopic;
     private final String targetTopic;
+    private final Duration duration;
 
-    public WindowedAggregateTopology(String sourceTopic, String targetTopic) {
+    public SessionWindowedAggregateTopology(String sourceTopic, String targetTopic, Duration duration) {
         this.sourceTopic = sourceTopic;
         this.targetTopic = targetTopic;
+        this.duration = duration;
     }
 
     @Override
@@ -35,11 +37,13 @@ public class WindowedAggregateTopology implements Supplier<Topology> {
                 .groupByKey()
                 // messages are grouped into 5 minute windows, starting at midnight
                 // Window is maintained for 24 hours
-                .windowedBy(TimeWindows.of(Duration.ofMinutes(5)))
+                .windowedBy(SessionWindows.with(duration))
                 .aggregate(() -> "",
-                        (k, v, agg) -> (agg.length() == 0) ? v : agg + "," + v,
+                        new MyAggregator(),
+                        new MyMerger(),
                         Materialized.as("csv-aggregation-store").with(stringSerde, stringSerde))
                 .toStream()
+                .filter((k,v) -> v != null) // remove tombstones added by the aggregate for internal reasons, see https://issues.apache.org/jira/browse/KAFKA-8318
                 // the windowed key allows us access to metadata about the window, such as start and end times
                 .peek((windowedKey, v) -> {
                     String key = windowedKey.key();
@@ -58,4 +62,27 @@ public class WindowedAggregateTopology implements Supplier<Topology> {
         return builder.build();
     }
 
+    private class MyAggregator implements Aggregator<String, String, String> {
+
+        @Override
+        public String apply(String k, String v, String agg) {
+            log.info("MyAggregator called with k={}, v={}, agg={}",k,v,agg);
+            String result = (agg.length() == 0) ? v : agg + "," + v;
+            return result;
+        }
+    }
+
+    private class MyMerger implements Merger<String, String> {
+        @Override
+        public String apply(String aggKey, String aggOne, String aggTwo) {
+            if (aggOne.length() == 0) {
+                return aggTwo;
+            }
+            else {
+                log.info("MyMerger called with key = {}, one={} two={}", aggKey, aggOne, aggTwo);
+                String result = "[(" + aggOne + "),(" + aggTwo + ")]";
+                return result;
+            }
+        }
+    }
 }
