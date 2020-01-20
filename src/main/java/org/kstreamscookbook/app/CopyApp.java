@@ -2,6 +2,7 @@ package org.kstreamscookbook.app;
 
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
+import org.kstreamscookbook.streams.CopyTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

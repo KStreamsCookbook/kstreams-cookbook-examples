@@ -1,4 +1,4 @@
-package org.kstreamscookbook.app;
+package org.kstreamscookbook.streams;
 
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -8,7 +8,7 @@ import org.apache.kafka.streams.kstream.Produced;
 
 import java.util.function.Supplier;
 
-class CopyTopology implements Supplier<Topology> {
+public class CopyTopology implements Supplier<Topology> {
 
     private final String inputTopic;
     private final String outputTopic;
