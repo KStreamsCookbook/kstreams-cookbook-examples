@@ -1,15 +1,16 @@
 package org.kstreamscookbook.tables;
 
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.streams.TestInputTopic;
+import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.Topology;
-import org.apache.kafka.streams.test.ConsumerRecordFactory;
-import org.apache.kafka.streams.test.OutputVerifier;
 import org.junit.jupiter.api.Test;
 import org.kstreamscookbook.TopologyTestBase;
 
 import java.util.function.Supplier;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class SimpleTableTopologyTest extends TopologyTestBase {
 
@@ -23,27 +24,26 @@ class SimpleTableTopologyTest extends TopologyTestBase {
 
     @Test
     void testCopied() {
+
         var stringSerializer = new StringSerializer();
-        var factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
+        TestInputTopic<String, String> inputTopic = testDriver.createInputTopic(INPUT_TOPIC, stringSerializer, stringSerializer);
 
-        // NOTE: you have to keep using the topic name when sending String keys to distinguish between
-        // factory.create(K, V) and factory.create(topicName:String, V)
-        // otherwise you can set the topic name when creating the ConsumerRecordFactory
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "one"));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "b", "one"));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "two"));
+        var stringDeserializer = new StringDeserializer();
+        TestOutputTopic<String, String> outputTopic = testDriver.createOutputTopic(OUTPUT_TOPIC, stringDeserializer, stringDeserializer);
 
-        expectNextKVPair("a", "one");
-        expectNextKVPair("b", "one");
-        expectNextKVPair("a", "two");
+        inputTopic.pipeInput("a", "one");
+        inputTopic.pipeInput("b", "one");
+        inputTopic.pipeInput("a", "two");
 
+        assertNextKVPair(outputTopic, "a", "one");
+        assertNextKVPair(outputTopic, "b", "one");
+        assertNextKVPair(outputTopic,"a", "two");
     }
 
-    // TODO refactor this out to make it consistent with other tests
-    private void expectNextKVPair(String k, String v) {
-        var stringDeserializer = new StringDeserializer();
-        var producerRecord = testDriver.readOutput(OUTPUT_TOPIC, stringDeserializer, stringDeserializer);
-        OutputVerifier.compareKeyValue(producerRecord, k, v);
+    private void assertNextKVPair(TestOutputTopic<String, String> outputTopic, String k, String v) {
+        var record = outputTopic.readRecord();
+        assertThat(record.getKey()).isEqualTo(k);
+        assertThat(record.getValue()).isEqualTo(v);
     }
 
 }
