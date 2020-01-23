@@ -19,7 +19,7 @@ import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-class TimeWindowedAggregateTopologyTest extends TopologyTestBase {
+class TimeWindowedSuppressedAggregateTopologyTest extends TopologyTestBase {
 
     public static final String INPUT_TOPIC = "input-topic";
     public static final String OUTPUT_TOPIC = "output-topic";
@@ -30,7 +30,7 @@ class TimeWindowedAggregateTopologyTest extends TopologyTestBase {
 
     @Override
     protected Supplier<Topology> withTopology() {
-        return new TimeWindowedAggregateTopology(INPUT_TOPIC, OUTPUT_TOPIC);
+        return new TimeWindowedSuppressedAggregateTopology(INPUT_TOPIC, OUTPUT_TOPIC);
     }
 
     @Override
@@ -55,14 +55,18 @@ class TimeWindowedAggregateTopologyTest extends TopologyTestBase {
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "2", start.plus(1, ChronoUnit.MINUTES).toEpochMilli()));
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "3", start.plus(2, ChronoUnit.MINUTES).toEpochMilli()));
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "4", start.plus(3, ChronoUnit.MINUTES).toEpochMilli()));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "bad message", -1L));
+
         // second window starts here
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "5", start.plus(5, ChronoUnit.MINUTES).toEpochMilli()));
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "6", start.plus(6, ChronoUnit.MINUTES).toEpochMilli()));
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "7", start.plus(7, ChronoUnit.MINUTES).toEpochMilli()));
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "8", start.plus(8, ChronoUnit.MINUTES).toEpochMilli()));
 
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "1 Day", start.plus(1, ChronoUnit.DAYS).toEpochMilli()));
+        // third window
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "10", start.plus(10, ChronoUnit.MINUTES).toEpochMilli()));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "11", start.plus(11, ChronoUnit.MINUTES).toEpochMilli()));
+
+        // late arrival
 
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "9", start.plus(9, ChronoUnit.MINUTES).toEpochMilli()));
 
@@ -72,23 +76,12 @@ class TimeWindowedAggregateTopologyTest extends TopologyTestBase {
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "12", start.plus(12, ChronoUnit.MINUTES).toEpochMilli()));
 
 
-        OutputVerifier.compareValue(readNextRecord(),"1");
-        OutputVerifier.compareValue(readNextRecord(), "1,2");
-        OutputVerifier.compareValue(readNextRecord(), "1,2,3");
         OutputVerifier.compareValue(readNextRecord(), "1,2,3,4");
-        OutputVerifier.compareValue(readNextRecord(), "5");
-        OutputVerifier.compareValue(readNextRecord(), "5,6");
-        OutputVerifier.compareValue(readNextRecord(), "5,6,7");
-        OutputVerifier.compareValue(readNextRecord(), "5,6,7,8");
-
-        OutputVerifier.compareValue(readNextRecord(), "1 Day");
-
-        // Late arrival causes reissuing of record
         OutputVerifier.compareValue(readNextRecord(), "5,6,7,8,9");
 
-        OutputVerifier.compareValue(readNextRecord(), "2 Days");
+        OutputVerifier.compareValue(readNextRecord(), "10,11");
 
-        // No more records expected, window has expired
+        // 2 days is not completed yet, nothing to emit from the suppression
         assertNull(readNextRecord());
     }
 
