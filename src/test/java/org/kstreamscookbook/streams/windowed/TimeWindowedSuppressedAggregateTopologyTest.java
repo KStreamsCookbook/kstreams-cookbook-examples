@@ -70,6 +70,10 @@ class TimeWindowedSuppressedAggregateTopologyTest extends TopologyTestBase {
 
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "9", start.plus(9, ChronoUnit.MINUTES).toEpochMilli()));
 
+        // fourth window
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "20", start.plus(20, ChronoUnit.MINUTES).toEpochMilli()));
+        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "21", start.plus(21, ChronoUnit.MINUTES).toEpochMilli()));
+
         testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "2 Days", start.plus(2, ChronoUnit.DAYS).toEpochMilli()));
 
         // beyond the implicit grace period of 1 day
@@ -80,6 +84,8 @@ class TimeWindowedSuppressedAggregateTopologyTest extends TopologyTestBase {
         OutputVerifier.compareValue(readNextRecord(), "5,6,7,8,9");
 
         OutputVerifier.compareValue(readNextRecord(), "10,11");
+
+        OutputVerifier.compareValue(readNextRecord(), "20,21");
 
         // 2 days is not completed yet, nothing to emit from the suppression
         assertNull(readNextRecord());
