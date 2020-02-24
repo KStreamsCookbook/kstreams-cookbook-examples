@@ -31,17 +31,12 @@ public class FlatMapValuesTopologyTest extends TopologyTestBase {
 
         inputTopic.pipeInput("key", "This is a  sentence");
 
-        expectNextKVPair("key", "This");
-        expectNextKVPair("key", "is");
-        expectNextKVPair("key", "a");
-        expectNextKVPair("key", "sentence");
-    }
-
-    // TODO refactor this out to make it consistent with other tests
-    private void expectNextKVPair(String k, String v) {
         var stringDeserializer = new StringDeserializer();
         var outputTopic = testDriver.createOutputTopic(OUTPUT_TOPIC, stringDeserializer, stringDeserializer);
 
-        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>(k,v));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("key", "This"));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("key", "is"));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("key", "a"));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("key", "sentence"));
     }
 }
