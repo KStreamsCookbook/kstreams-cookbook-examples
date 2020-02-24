@@ -10,6 +10,7 @@ import org.apache.kafka.streams.Topology;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 
+
 import org.kstreamscookbook.TopologyTestBase;
 
 import java.util.function.Supplier;
@@ -35,5 +36,6 @@ class CopyTopologyTest extends TopologyTestBase {
         inputTopic.pipeInput("key", "value");
 
         assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("key", "value"));
+        assertThat(outputTopic.isEmpty()).isTrue();
     }
 }
