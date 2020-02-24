@@ -28,12 +28,13 @@ class CopyTopologyTest extends TopologyTestBase {
     @Test
     void testCopied() {
         var stringSerializer = new StringSerializer();
-        var stringDeserializer = new StringDeserializer();
 
-        TestInputTopic<String, String> inputTopic = testDriver.createInputTopic(INPUT_TOPIC, stringSerializer,stringSerializer);
-        TestOutputTopic<String, String> outputTopic = testDriver.createOutputTopic(OUTPUT_TOPIC, stringDeserializer, stringDeserializer);
+        var inputTopic = testDriver.createInputTopic(INPUT_TOPIC, stringSerializer,stringSerializer);
 
         inputTopic.pipeInput("key", "value");
+
+        var stringDeserializer = new StringDeserializer();
+        var outputTopic = testDriver.createOutputTopic(OUTPUT_TOPIC, stringDeserializer, stringDeserializer);
 
         assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("key", "value"));
         assertThat(outputTopic.isEmpty()).isTrue();

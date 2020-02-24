@@ -30,7 +30,7 @@ class PeekTopologyTest extends TopologyTestBase {
     void testFiltered() {
         var integerSerializer = new IntegerSerializer();
         var factory =
-                new ConsumerRecordFactory<>(FilterTopology.INPUT_TOPIC, integerSerializer, integerSerializer);
+                new ConsumerRecordFactory<>(PeekTopology.INPUT_TOPIC, integerSerializer, integerSerializer);
 
         // send in some purchases
         // NOTE: we have to send a timestamp when sending Integers or Longs as both key and value to distinguish between
@@ -46,8 +46,8 @@ class PeekTopologyTest extends TopologyTestBase {
 
         IntegerDeserializer integerDeserializer = new IntegerDeserializer();
 
-        OutputVerifier.compareKeyValue(testDriver.readOutput(FilterTopology.OUTPUT_TOPIC, integerDeserializer, integerDeserializer), 1001, 1000);
-        OutputVerifier.compareKeyValue(testDriver.readOutput(FilterTopology.OUTPUT_TOPIC, integerDeserializer, integerDeserializer), 1002, 1200);
+        OutputVerifier.compareKeyValue(testDriver.readOutput(PeekTopology.OUTPUT_TOPIC, integerDeserializer, integerDeserializer), 1001, 1000);
+        OutputVerifier.compareKeyValue(testDriver.readOutput(PeekTopology.OUTPUT_TOPIC, integerDeserializer, integerDeserializer), 1002, 1200);
     }
 
 }

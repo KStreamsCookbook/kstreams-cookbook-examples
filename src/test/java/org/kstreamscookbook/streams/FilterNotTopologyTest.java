@@ -33,7 +33,7 @@ class FilterNotTopologyTest extends TopologyTestBase {
         var integerSerializer = new IntegerSerializer();
         var stringSerializer = new StringSerializer();
 
-        TestInputTopic<Integer, String> inputTopic = testDriver.createInputTopic(INPUT_TOPIC, integerSerializer, stringSerializer);
+        var inputTopic = testDriver.createInputTopic(INPUT_TOPIC, integerSerializer, stringSerializer);
 
         // send in some country codes associated with accounts
         inputTopic.pipeInput(1001, "UK");
@@ -43,7 +43,7 @@ class FilterNotTopologyTest extends TopologyTestBase {
         var integerDeserializer = new IntegerDeserializer();
         var stringDeserializer = new StringDeserializer();
 
-        TestOutputTopic<Integer, String> outputTopic = testDriver.createOutputTopic(OUTPUT_TOPIC, integerDeserializer, stringDeserializer);
+        var outputTopic = testDriver.createOutputTopic(OUTPUT_TOPIC, integerDeserializer, stringDeserializer);
 
         assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>(1002,"SE"));
         assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>(1003,"DE"));

@@ -9,19 +9,24 @@ import org.apache.kafka.streams.kstream.Produced;
 
 import java.util.function.Supplier;
 
-class FilterTopology implements Supplier<Topology> {
+public class FilterTopology implements Supplier<Topology> {
 
-    public static final String INPUT_TOPIC = "input-topic";
-    public static final String OUTPUT_TOPIC = "output-topic";
+    private String inputTopic;
+    private String outputTopic;
+
+    public FilterTopology(String inputTopic, String outputTopic) {
+        this.inputTopic = inputTopic;
+        this.outputTopic = outputTopic;
+    }
 
     @Override
     public Topology get() {
         Serde<Integer> integerSerde = Serdes.Integer();
 
         StreamsBuilder builder = new StreamsBuilder();
-        builder.stream(INPUT_TOPIC, Consumed.with(integerSerde, integerSerde))
+        builder.stream(inputTopic, Consumed.with(integerSerde, integerSerde))
                 .filter((k, v) -> v >= 1000)
-                .to(OUTPUT_TOPIC, Produced.with(integerSerde, integerSerde));
+                .to(outputTopic, Produced.with(integerSerde, integerSerde));
 
         return builder.build();
     }

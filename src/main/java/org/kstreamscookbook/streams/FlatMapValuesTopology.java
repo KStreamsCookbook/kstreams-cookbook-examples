@@ -12,10 +12,15 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.function.Supplier;
 
-class FlatMapValuesTopology implements Supplier<Topology> {
+public class FlatMapValuesTopology implements Supplier<Topology> {
 
-    public static final String INPUT_TOPIC = "input-topic";
-    public static final String OUTPUT_TOPIC = "output-topic";
+    private String inputTopic;
+    private String outputTopic;
+
+    public FlatMapValuesTopology(String inputTopic, String outputTopic) {
+        this.inputTopic = inputTopic;
+        this.outputTopic = outputTopic;
+    }
 
     @Override
     public Topology get() {
@@ -24,11 +29,11 @@ class FlatMapValuesTopology implements Supplier<Topology> {
         Serde<String> stringSerde = Serdes.String();
 
         StreamsBuilder builder = new StreamsBuilder();
-        builder.stream(INPUT_TOPIC, Consumed.with(stringSerde, stringSerde))
+        builder.stream(inputTopic, Consumed.with(stringSerde, stringSerde))
                 // ValueMapper#(s):Iterable<?>
                 .flatMapValues(value -> Arrays.asList(value.split("\\W+")))
                 .peek((key, value) -> log.info(value))
-                .to(OUTPUT_TOPIC, Produced.with(stringSerde, stringSerde));
+                .to(outputTopic, Produced.with(stringSerde, stringSerde));
         return builder.build();
     }
 }

@@ -27,7 +27,7 @@ class ForEachTopologyTest extends TopologyTestBase {
     void testFiltered() {
         var integerSerializer = new IntegerSerializer();
         var factory =
-                new ConsumerRecordFactory<>(FilterTopology.INPUT_TOPIC, integerSerializer, integerSerializer);
+                new ConsumerRecordFactory<>(ForEachTopology.INPUT_TOPIC, integerSerializer, integerSerializer);
 
         // send in some purchases
         // NOTE: we have to send a timestamp when sending Integers or Longs as both key and value to distinguish between

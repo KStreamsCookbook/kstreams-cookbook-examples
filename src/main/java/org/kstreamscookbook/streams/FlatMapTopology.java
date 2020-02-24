@@ -14,10 +14,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Supplier;
 
-class FlatMapTopology implements Supplier<Topology> {
+public class FlatMapTopology implements Supplier<Topology> {
 
-    public static final String INPUT_TOPIC = "input-topic";
-    public static final String OUTPUT_TOPIC = "output-topic";
+    private String inputTopic;
+    private String outputTopic;
+
+    public FlatMapTopology(String inputTopic, String outputTopic) {
+        this.inputTopic = inputTopic;
+        this.outputTopic = outputTopic;
+    }
 
     @Override
     public Topology get() {
@@ -27,7 +32,7 @@ class FlatMapTopology implements Supplier<Topology> {
         var intSerde = Serdes.Integer();
 
         StreamsBuilder builder = new StreamsBuilder();
-        builder.stream(INPUT_TOPIC, Consumed.with(stringSerde, stringSerde))
+        builder.stream(inputTopic, Consumed.with(stringSerde, stringSerde))
                 // KeyValueMapper#(k,s):Iterable<KeyValue<k,v>>
                 .flatMap((key, value) -> {
                     String[] words = value.split("\\W+");
@@ -40,7 +45,7 @@ class FlatMapTopology implements Supplier<Topology> {
                 })
                 // TODO this performs a re-keying
                 .peek((key, value) -> log.info(value))
-                .to(OUTPUT_TOPIC, Produced.with(intSerde, stringSerde));
+                .to(outputTopic, Produced.with(intSerde, stringSerde));
         return builder.build();
     }
 }

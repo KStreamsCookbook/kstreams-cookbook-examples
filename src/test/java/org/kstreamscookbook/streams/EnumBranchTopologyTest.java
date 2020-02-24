@@ -21,17 +21,17 @@ class EnumBranchTopologyTest extends TopologyTestBase {
     @Test
     void testCopied() {
         var stringSerializer = new StringSerializer();
-        var stringDeserializer = new StringDeserializer();
 
-        TestInputTopic<String, String> inputTopic = testDriver.createInputTopic(BranchTopology.INPUT_TOPIC, stringSerializer,stringSerializer);
-        TestOutputTopic<String, String> outputTopicABC = testDriver.createOutputTopic(BranchTopology.OUTPUT_ABC, stringDeserializer, stringDeserializer);
-        TestOutputTopic<String, String> outputTopicDEF = testDriver.createOutputTopic(BranchTopology.OUTPUT_DEF, stringDeserializer, stringDeserializer);
-        TestOutputTopic<String, String> outputTopicOther = testDriver.createOutputTopic(BranchTopology.OUTPUT_OTHER, stringDeserializer, stringDeserializer);
+        var inputTopic = testDriver.createInputTopic(BranchTopology.INPUT_TOPIC, stringSerializer,stringSerializer);
 
         inputTopic.pipeInput("one", "alpha");
         inputTopic.pipeInput("two", "delta");
         inputTopic.pipeInput("three", "tango");
 
+        var stringDeserializer = new StringDeserializer();
+        var outputTopicABC = testDriver.createOutputTopic(BranchTopology.OUTPUT_ABC, stringDeserializer, stringDeserializer);
+        var outputTopicDEF = testDriver.createOutputTopic(BranchTopology.OUTPUT_DEF, stringDeserializer, stringDeserializer);
+        var outputTopicOther = testDriver.createOutputTopic(BranchTopology.OUTPUT_OTHER, stringDeserializer, stringDeserializer);
 
         assertThat(outputTopicABC.readKeyValue()).isEqualTo(new KeyValue<>("one","alpha"));
         assertThat(outputTopicDEF.readKeyValue()).isEqualTo(new KeyValue<>("two","delta"));
