@@ -9,10 +9,15 @@ import org.apache.kafka.streams.kstream.Produced;
 
 import java.util.function.Supplier;
 
-class FilterNotTopology implements Supplier<Topology> {
+public class FilterNotTopology implements Supplier<Topology> {
 
-    public static final String INPUT_TOPIC = "input-topic";
-    public static final String OUTPUT_TOPIC = "output-topic";
+    private String inputTopic;
+    private String outputTopic;
+
+    public FilterNotTopology(String inputTopic, String outputTopic) {
+        this.inputTopic = inputTopic;
+        this.outputTopic = outputTopic;
+    }
 
     @Override
     public Topology get() {
@@ -20,10 +25,10 @@ class FilterNotTopology implements Supplier<Topology> {
         Serde<String> stringSerde = Serdes.String();
 
         StreamsBuilder builder = new StreamsBuilder();
-        builder.stream(INPUT_TOPIC, Consumed.with(integerSerde, stringSerde))
+        builder.stream(inputTopic, Consumed.with(integerSerde, stringSerde))
                 // process only accounts not in the UK
                 .filterNot((k, v) -> v.equals("UK"))
-                .to(OUTPUT_TOPIC, Produced.with(integerSerde, stringSerde));
+                .to(outputTopic, Produced.with(integerSerde, stringSerde));
 
         return builder.build();
     }
