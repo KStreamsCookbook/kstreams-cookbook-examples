@@ -9,7 +9,6 @@ import org.apache.kafka.streams.kstream.Produced;
 import java.util.function.Supplier;
 
 public class CopyTopology implements Supplier<Topology> {
-
     private final String inputTopic;
     private final String outputTopic;
 

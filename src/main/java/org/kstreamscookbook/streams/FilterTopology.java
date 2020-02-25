@@ -10,7 +10,6 @@ import org.apache.kafka.streams.kstream.Produced;
 import java.util.function.Supplier;
 
 public class FilterTopology implements Supplier<Topology> {
-
     private String inputTopic;
     private String outputTopic;
 

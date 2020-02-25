@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class FlatMapTopology implements Supplier<Topology> {
-
     private String inputTopic;
     private String outputTopic;
 

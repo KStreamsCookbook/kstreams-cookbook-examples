@@ -13,7 +13,6 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 
 public class FlatMapValuesTopology implements Supplier<Topology> {
-
     private String inputTopic;
     private String outputTopic;
 

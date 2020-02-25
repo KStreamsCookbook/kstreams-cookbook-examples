@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class ForEachTopology implements Supplier<Topology> {
-
     private String inputTopic;
 
     public ForEachTopology(String inputTopic) {

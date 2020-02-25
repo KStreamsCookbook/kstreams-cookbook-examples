@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 
 public class BranchTopology implements Supplier<Topology> {
-
     public static final String INPUT_TOPIC = "input-topic";
     public static final String OUTPUT_ABC = "output-abc";
     public static final String OUTPUT_DEF = "output-def";

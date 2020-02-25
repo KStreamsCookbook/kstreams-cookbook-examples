@@ -11,7 +11,6 @@ import org.apache.kafka.streams.kstream.ValueMapper;
 import java.util.function.Supplier;
 
 class MapValuesTopology implements Supplier<Topology> {
-
     private String inputTopic;
     private String outputTopic;
 

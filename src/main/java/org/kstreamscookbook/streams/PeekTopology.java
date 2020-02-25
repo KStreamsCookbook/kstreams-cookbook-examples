@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.function.Supplier;
 
 class PeekTopology implements Supplier<Topology> {
-
     private String inputTopic;
     private String outputTopic;
 

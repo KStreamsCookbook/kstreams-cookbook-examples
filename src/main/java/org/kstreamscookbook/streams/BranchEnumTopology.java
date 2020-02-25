@@ -13,7 +13,6 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 
 public class BranchEnumTopology implements Supplier<Topology> {
-
     public static final String INPUT_TOPIC = "input-topic";
     public static final String OUTPUT_ABC = "output-abc";
     public static final String OUTPUT_DEF = "output-def";

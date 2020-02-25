@@ -11,7 +11,6 @@ import org.apache.kafka.streams.kstream.Produced;
 import java.util.function.Supplier;
 
 public class MapTopology implements Supplier<Topology> {
-
     private String inputTopic;
     private String outputTopic;
 
