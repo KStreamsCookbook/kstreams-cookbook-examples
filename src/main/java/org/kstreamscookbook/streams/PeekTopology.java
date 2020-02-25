@@ -12,8 +12,13 @@ import java.util.function.Supplier;
 
 class PeekTopology implements Supplier<Topology> {
 
-    public static final String INPUT_TOPIC = "input-topic";
-    public static final String OUTPUT_TOPIC = "output-topic";
+    private String inputTopic;
+    private String outputTopic;
+
+    public PeekTopology(String inputTopic, String outputTopic) {
+        this.inputTopic = inputTopic;
+        this.outputTopic = outputTopic;
+    }
 
     private List<String> outputList;
 
@@ -27,10 +32,10 @@ class PeekTopology implements Supplier<Topology> {
         Serde<Integer> integerSerde = Serdes.Integer();
 
         StreamsBuilder builder = new StreamsBuilder();
-        builder.stream(INPUT_TOPIC, Consumed.with(integerSerde, integerSerde))
+        builder.stream(inputTopic, Consumed.with(integerSerde, integerSerde))
                 .filter((k, v) -> v >= 1000)
                 .peek((k, v) -> outputList.add(k + ":" + v))
-                .to(OUTPUT_TOPIC, Produced.with(integerSerde, integerSerde));
+                .to(outputTopic, Produced.with(integerSerde, integerSerde));
 
         return builder.build();
     }
