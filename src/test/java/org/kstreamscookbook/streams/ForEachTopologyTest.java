@@ -20,27 +20,25 @@ class ForEachTopologyTest extends TopologyTestBase {
 
     @Override
     protected Supplier<Topology> withTopology() {
-        return new ForEachTopology().withOutputList(outputList);
+        return new ForEachTopology(INPUT_TOPIC).withOutputList(outputList);
     }
 
     @Test
     void testFiltered() {
         var integerSerializer = new IntegerSerializer();
-        var factory =
-                new ConsumerRecordFactory<>(ForEachTopology.INPUT_TOPIC, integerSerializer, integerSerializer);
+        var inputTopic = testDriver.createInputTopic(INPUT_TOPIC, integerSerializer, integerSerializer);
 
         // send in some purchases
         // NOTE: we have to send a timestamp when sending Integers or Longs as both key and value to distinguish between
         // factory.create(K, V) and factory.create(V, timestampMs:long)
         // NOTE: Kafka has 3 notions of time - the test method below allows us to simulate Event time
-        testDriver.pipeInput(factory.create(1001, 1000, new Date().getTime()));
-        testDriver.pipeInput(factory.create(1001, 500, new Date().getTime()));
-        testDriver.pipeInput(factory.create(1002, 1200, new Date().getTime()));
+        inputTopic.pipeInput(1001, 1000, new Date().getTime());
+        inputTopic.pipeInput(1001, 500, new Date().getTime());
+        inputTopic.pipeInput(1002, 1200, new Date().getTime());
 
         assertTrue(outputList.contains("1001:1000"));
         assertFalse(outputList.contains("1001:500"));
         assertTrue(outputList.contains("1002:1200"));
-
     }
 
 }

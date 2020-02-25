@@ -9,9 +9,13 @@ import org.apache.kafka.streams.kstream.Consumed;
 import java.util.List;
 import java.util.function.Supplier;
 
-class ForEachTopology implements Supplier<Topology> {
+public class ForEachTopology implements Supplier<Topology> {
 
-    public static final String INPUT_TOPIC = "input-topic";
+    private String inputTopic;
+
+    public ForEachTopology(String inputTopic) {
+        this.inputTopic = inputTopic;
+    }
 
     private List<String> outputList;
 
@@ -25,7 +29,7 @@ class ForEachTopology implements Supplier<Topology> {
         Serde<Integer> integerSerde = Serdes.Integer();
 
         StreamsBuilder builder = new StreamsBuilder();
-        builder.stream(INPUT_TOPIC, Consumed.with(integerSerde, integerSerde))
+        builder.stream(inputTopic, Consumed.with(integerSerde, integerSerde))
                 .filter((k, v) -> v >= 1000)
                 .foreach((k, v) -> outputList.add(k + ":" + v));
 
