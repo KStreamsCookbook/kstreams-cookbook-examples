@@ -10,19 +10,24 @@ import org.apache.kafka.streams.kstream.Produced;
 
 import java.util.function.Supplier;
 
-class MapTopology implements Supplier<Topology> {
+public class MapTopology implements Supplier<Topology> {
 
-    public static final String INPUT_TOPIC = "input-topic";
-    public static final String OUTPUT_TOPIC = "output-topic";
+    private String inputTopic;
+    private String outputTopic;
+
+    public MapTopology(String inputTopic, String outputTopic) {
+        this.inputTopic = inputTopic;
+        this.outputTopic = outputTopic;
+    }
 
     @Override
     public Topology get() {
         Serde<String> stringSerde = Serdes.String();
 
         StreamsBuilder builder = new StreamsBuilder();
-        builder.stream(INPUT_TOPIC, Consumed.with(stringSerde, stringSerde))
+        builder.stream(inputTopic, Consumed.with(stringSerde, stringSerde))
                 .map((k, v) -> new KeyValue<>(k.substring(0, 1), v.toUpperCase()))
-                .to(OUTPUT_TOPIC, Produced.with(stringSerde, stringSerde));
+                .to(outputTopic, Produced.with(stringSerde, stringSerde));
 
         return builder.build();
     }
