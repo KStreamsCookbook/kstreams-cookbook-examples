@@ -3,8 +3,6 @@ package org.kstreamscookbook.streams;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.TestInputTopic;
-import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.Topology;
 
 import org.junit.jupiter.api.Test;
@@ -16,9 +14,6 @@ import org.kstreamscookbook.TopologyTestBase;
 import java.util.function.Supplier;
 
 class CopyTopologyTest extends TopologyTestBase {
-
-    private final static String INPUT_TOPIC = "input-topic";
-    private final static String OUTPUT_TOPIC = "output-topic";
 
     @Override
     protected Supplier<Topology> withTopology() {

@@ -19,9 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class FilterTopologyTest extends TopologyTestBase {
 
-    static final String INPUT_TOPIC = "input-topic";
-    static final String OUTPUT_TOPIC = "output-topic";
-
     @Override
     protected Supplier<Topology> withTopology() {
         return new FilterTopology(INPUT_TOPIC, OUTPUT_TOPIC);

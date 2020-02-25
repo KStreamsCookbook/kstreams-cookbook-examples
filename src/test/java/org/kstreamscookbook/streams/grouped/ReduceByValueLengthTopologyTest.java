@@ -13,10 +13,6 @@ import org.kstreamscookbook.TopologyTestBase;
 import java.util.function.Supplier;
 
 class ReduceByValueLengthTopologyTest extends TopologyTestBase {
-
-    public static final String INPUT_TOPIC = "input-topic";
-    public static final String OUTPUT_TOPIC = "output-topic";
-
     private StringSerializer stringSerializer = new StringSerializer();
     private IntegerDeserializer integerDeserializer = new IntegerDeserializer();
     private StringDeserializer stringDeserializer = new StringDeserializer();

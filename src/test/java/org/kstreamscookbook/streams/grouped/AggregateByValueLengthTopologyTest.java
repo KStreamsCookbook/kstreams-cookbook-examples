@@ -14,9 +14,6 @@ import java.util.function.Supplier;
 
 class AggregateByValueLengthTopologyTest extends TopologyTestBase {
 
-    public static final String INPUT_TOPIC = "input-topic";
-    public static final String OUTPUT_TOPIC = "output-topic";
-
     private StringSerializer stringSerializer = new StringSerializer();
     private IntegerDeserializer integerDeserializer = new IntegerDeserializer();
     private StringDeserializer stringDeserializer = new StringDeserializer();

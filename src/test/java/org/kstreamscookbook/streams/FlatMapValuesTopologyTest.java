@@ -16,9 +16,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class FlatMapValuesTopologyTest extends TopologyTestBase {
 
-    private static final String INPUT_TOPIC = "input-topic";
-    private static final String OUTPUT_TOPIC = "output-topic";
-
     @Override
     protected Supplier<Topology> withTopology() {
         return new FlatMapValuesTopology(INPUT_TOPIC, OUTPUT_TOPIC);

@@ -12,6 +12,9 @@ import java.util.function.Supplier;
 
 public abstract class TopologyTestBase {
 
+    protected final static String INPUT_TOPIC = "input-topic";
+    protected final static String OUTPUT_TOPIC = "output-topic";
+
     protected TopologyTestDriver testDriver;
 
     @BeforeEach
