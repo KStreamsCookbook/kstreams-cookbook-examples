@@ -31,9 +31,6 @@ class SessionWindowedAggregateTopologyTest extends TopologyTestBase {
     public static final String INPUT_TOPIC = "input-topic";
     public static final String OUTPUT_TOPIC = "output-topic";
 
-    private StringSerializer stringSerializer = new StringSerializer();
-    private StringDeserializer stringDeserializer = new StringDeserializer();
-
     private Instant start = Instant.parse("2019-04-20T10:35:00.00Z");
     private Duration duration = Duration.ofSeconds(5);
 
