@@ -20,7 +20,7 @@ class CountByValueLengthTopologyTest extends TopologyTestBase {
     }
 
     @Test
-    public void testCounts() {
+    public void testCountValueLength() {
         var stringSerializer = new StringSerializer();
         var inputTopic = testDriver.createInputTopic(INPUT_TOPIC, stringSerializer, stringSerializer);
 
