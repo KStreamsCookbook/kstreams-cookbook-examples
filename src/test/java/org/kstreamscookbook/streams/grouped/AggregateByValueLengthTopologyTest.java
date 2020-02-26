@@ -4,6 +4,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.test.ConsumerRecordFactory;
 import org.apache.kafka.streams.test.OutputVerifier;
@@ -12,11 +13,9 @@ import org.kstreamscookbook.TopologyTestBase;
 
 import java.util.function.Supplier;
 
-class AggregateByValueLengthTopologyTest extends TopologyTestBase {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    private StringSerializer stringSerializer = new StringSerializer();
-    private IntegerDeserializer integerDeserializer = new IntegerDeserializer();
-    private StringDeserializer stringDeserializer = new StringDeserializer();
+class AggregateByValueLengthTopologyTest extends TopologyTestBase {
 
     @Override
     protected Supplier<Topology> withTopology() {
@@ -25,26 +24,25 @@ class AggregateByValueLengthTopologyTest extends TopologyTestBase {
 
     @Test
     public void testAggregation() {
-        var factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
+        var stringSerializer = new StringSerializer();
+        var inputTopic = testDriver.createInputTopic(INPUT_TOPIC, stringSerializer, stringSerializer);
 
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "."));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "b", ".."));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "b", "..."));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", ".."));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "c", "..."));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "b", "."));
+        inputTopic.pipeInput("a", ".");
+        inputTopic.pipeInput("b", "..");
+        inputTopic.pipeInput("b", "...");
+        inputTopic.pipeInput("a", "..");
+        inputTopic.pipeInput("c", "...");
+        inputTopic.pipeInput("b", ".");
 
+        var integerDeserializer = new IntegerDeserializer();
+        var stringDeserializer = new StringDeserializer();
+        var outputTopic = testDriver.createOutputTopic(OUTPUT_TOPIC, integerDeserializer, stringDeserializer);
 
-        OutputVerifier.compareKeyValue(readNextRecord(), 1, "a");
-        OutputVerifier.compareKeyValue(readNextRecord(), 2, "b");
-        OutputVerifier.compareKeyValue(readNextRecord(), 3, "b");
-        OutputVerifier.compareKeyValue(readNextRecord(), 2, "b,a");
-        OutputVerifier.compareKeyValue(readNextRecord(), 3, "b,c");
-        OutputVerifier.compareKeyValue(readNextRecord(), 1, "a,b");
-    }
-
-    // TODO consider refactoring out to make it consistent
-    private ProducerRecord<Integer, String> readNextRecord() {
-        return testDriver.readOutput(OUTPUT_TOPIC, integerDeserializer, stringDeserializer);
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>(1,"a"));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>(2,"b"));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>(3,"b"));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>(2,"b,a"));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>(3,"b,c"));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>(1,"a,b"));
     }
 }
