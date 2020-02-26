@@ -23,7 +23,7 @@ class AggregateByValueLengthTopologyTest extends TopologyTestBase {
     }
 
     @Test
-    public void testAggregation() {
+    public void testAggregationByValue() {
         var stringSerializer = new StringSerializer();
         var inputTopic = testDriver.createInputTopic(INPUT_TOPIC, stringSerializer, stringSerializer);
 

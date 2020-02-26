@@ -1,22 +1,18 @@
 package org.kstreamscookbook.streams.grouped;
 
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.Topology;
-import org.apache.kafka.streams.test.ConsumerRecordFactory;
-import org.apache.kafka.streams.test.OutputVerifier;
 import org.junit.jupiter.api.Test;
 import org.kstreamscookbook.TopologyTestBase;
 
 import java.util.function.Supplier;
 
-class CountByValueLengthTopologyTest extends TopologyTestBase {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    private StringSerializer stringSerializer = new StringSerializer();
-    private IntegerDeserializer integerDeserializer = new IntegerDeserializer();
-    private LongDeserializer longDeserializer = new LongDeserializer();
+class CountByValueLengthTopologyTest extends TopologyTestBase {
 
     @Override
     protected Supplier<Topology> withTopology() {
@@ -25,27 +21,27 @@ class CountByValueLengthTopologyTest extends TopologyTestBase {
 
     @Test
     public void testCounts() {
-        var factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
+        var stringSerializer = new StringSerializer();
+        var inputTopic = testDriver.createInputTopic(INPUT_TOPIC, stringSerializer, stringSerializer);
 
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "ignored_a", "."));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "ignored_b", ".."));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "ignored_c", "..."));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "ignored_d", ".."));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "ignored_e", "..."));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "ignored_f", "."));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "ignored_g", "...."));
+        inputTopic.pipeInput("ignored_a", ".");
+        inputTopic.pipeInput("ignored_b", "..");
+        inputTopic.pipeInput("ignored_c", "...");
+        inputTopic.pipeInput("ignored_d", "..");
+        inputTopic.pipeInput("ignored_e", "...");
+        inputTopic.pipeInput("ignored_f", ".");
+        inputTopic.pipeInput("ignored_g", ".....");
 
+        var integerDeserializer = new IntegerDeserializer();
+        var longDeserializer = new LongDeserializer();
+        var outputTopic = testDriver.createOutputTopic(OUTPUT_TOPIC, integerDeserializer, longDeserializer);
 
-        OutputVerifier.compareKeyValue(readNextRecord(), 1, 1L);
-        OutputVerifier.compareKeyValue(readNextRecord(), 2, 1L);
-        OutputVerifier.compareKeyValue(readNextRecord(), 3, 1L);
-        OutputVerifier.compareKeyValue(readNextRecord(), 2, 2L);
-        OutputVerifier.compareKeyValue(readNextRecord(), 3, 2L);
-        OutputVerifier.compareKeyValue(readNextRecord(), 1, 2L);
-        OutputVerifier.compareKeyValue(readNextRecord(), 4, 1L);
-    }
-
-    private ProducerRecord<Integer, Long> readNextRecord() {
-        return testDriver.readOutput(OUTPUT_TOPIC, integerDeserializer, longDeserializer);
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>(1, 1L));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>(2, 1L));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>(3, 1L));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>(2, 2L));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>(3, 2L));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>(1, 2L));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>(5, 1L));
     }
 }
