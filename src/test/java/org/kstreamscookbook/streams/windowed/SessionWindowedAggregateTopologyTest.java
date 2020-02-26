@@ -3,11 +3,14 @@ package org.kstreamscookbook.streams.windowed;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.processor.LogAndSkipOnInvalidTimestamp;
 import org.apache.kafka.streams.test.ConsumerRecordFactory;
 import org.apache.kafka.streams.test.OutputVerifier;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.kstreamscookbook.TopologyTestBase;
 
@@ -20,6 +23,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 class SessionWindowedAggregateTopologyTest extends TopologyTestBase {
@@ -33,7 +37,15 @@ class SessionWindowedAggregateTopologyTest extends TopologyTestBase {
     private Instant start = Instant.parse("2019-04-20T10:35:00.00Z");
     private Duration duration = Duration.ofSeconds(5);
 
-    private ConsumerRecordFactory<String, String> factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
+    private TestInputTopic<String, String> inputTopic;
+
+    @BeforeEach
+    void localSetup() {
+        // called after superclass @beforeEach
+        var stringSerializer = new StringSerializer();
+
+        inputTopic = testDriver.createInputTopic(INPUT_TOPIC, stringSerializer, stringSerializer);
+    }
 
     @Override
     protected Supplier<Topology> withTopology() {
@@ -77,31 +89,34 @@ class SessionWindowedAggregateTopologyTest extends TopologyTestBase {
         // and another late arrival, this time merging the already merged window with the new window
         createRecord(key, 17);
 
+        var stringDeserializer = new StringDeserializer();
+        var outputTopic = testDriver.createOutputTopic(OUTPUT_TOPIC, stringDeserializer, stringDeserializer);
+
         // the original window
-        OutputVerifier.compareValue(readNextRecord(),"0s");
-        OutputVerifier.compareValue(readNextRecord(), "0s,1s");
-        OutputVerifier.compareValue(readNextRecord(), "0s,1s,2s");
-        OutputVerifier.compareValue(readNextRecord(), "0s,1s,2s,3s");
+        assertThat(outputTopic.readValue()).isEqualTo("0s");
+        assertThat(outputTopic.readValue()).isEqualTo("0s,1s");
+        assertThat(outputTopic.readValue()).isEqualTo("0s,1s,2s");
+        assertThat(outputTopic.readValue()).isEqualTo("0s,1s,2s,3s");
 
         // a new session window
-        OutputVerifier.compareValue(readNextRecord(), "10s");
-        OutputVerifier.compareValue(readNextRecord(), "10s,12s");
+        assertThat(outputTopic.readValue()).isEqualTo("10s");
+        assertThat(outputTopic.readValue()).isEqualTo("10s,12s");
 
         // we are expecting a merged window of "0s,1s,2s,3s" with "10s,12s" and 7s appended
-        OutputVerifier.compareValue(readNextRecord(), "[(0s,1s,2s,3s),(10s,12s)],7s");
+        assertThat(outputTopic.readValue()).isEqualTo("[(0s,1s,2s,3s),(10s,12s)],7s");
 
-        OutputVerifier.compareValue(readNextRecord(), "[(0s,1s,2s,3s),(10s,12s)],7s,8s");
+        assertThat(outputTopic.readValue()).isEqualTo("[(0s,1s,2s,3s),(10s,12s)],7s,8s");
 
         // a new window again
-        OutputVerifier.compareValue(readNextRecord(), "20s");
-        OutputVerifier.compareValue(readNextRecord(), "20s,21s");
+        assertThat(outputTopic.readValue()).isEqualTo("20s");
+        assertThat(outputTopic.readValue()).isEqualTo("20s,21s");
 
         // read this carefully - this is a merge of "[(0s,1s,2s,3s),(10s,12s)],7s,8s" and "20s,21s) with 17s appended
-        OutputVerifier.compareValue(readNextRecord(), "[([(0s,1s,2s,3s),(10s,12s)],7s,8s),(20s,21s)],17s");
+        assertThat(outputTopic.readValue()).isEqualTo("[([(0s,1s,2s,3s),(10s,12s)],7s,8s),(20s,21s)],17s");
 
         // No more records expected, window has expired
 
-        assertNull(readNextRecord());
+        assertThat(outputTopic.isEmpty()).isTrue();
     }
 
     /*
@@ -112,14 +127,10 @@ class SessionWindowedAggregateTopologyTest extends TopologyTestBase {
     private void createRecord(String key, long seconds) {
         String value = String.format("%ds",seconds);
 
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, key, value, timestamp(seconds, ChronoUnit.SECONDS)));
+        inputTopic.pipeInput(key, value, timestamp(seconds, ChronoUnit.SECONDS));
     }
 
     private long timestamp(long amount, TemporalUnit unit) {
         return start.plus(amount, unit).toEpochMilli();
-    }
-
-    private ProducerRecord<String, String> readNextRecord() {
-        return testDriver.readOutput(OUTPUT_TOPIC, stringDeserializer, stringDeserializer);
     }
 }
