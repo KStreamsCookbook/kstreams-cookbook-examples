@@ -23,9 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 class TimeWindowedCountTopologyTest extends TopologyTestBase {
 
-    private StringDeserializer stringDeserializer = new StringDeserializer();
-    private LongDeserializer longDeserializer = new LongDeserializer();
-
     @Override
     protected Supplier<Topology> withTopology() {
         return new TimeWindowedCountTopology(INPUT_TOPIC, OUTPUT_TOPIC);
