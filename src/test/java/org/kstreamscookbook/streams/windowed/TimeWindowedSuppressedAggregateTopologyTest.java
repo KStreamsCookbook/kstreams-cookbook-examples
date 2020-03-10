@@ -17,16 +17,10 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 class TimeWindowedSuppressedAggregateTopologyTest extends TopologyTestBase {
-
-    public static final String INPUT_TOPIC = "input-topic";
-    public static final String OUTPUT_TOPIC = "output-topic";
-
-    private StringSerializer stringSerializer = new StringSerializer();
-    private StringDeserializer stringDeserializer = new StringDeserializer();
-
 
     @Override
     protected Supplier<Topology> withTopology() {
@@ -46,52 +40,50 @@ class TimeWindowedSuppressedAggregateTopologyTest extends TopologyTestBase {
 
     @Test
     public void testWindowedAggregation() {
-        var factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
+        var stringSerializer = new StringSerializer();
+        var inputTopic = testDriver.createInputTopic(INPUT_TOPIC, stringSerializer, stringSerializer);
 
         var start = Instant.parse("2019-04-20T10:35:00.00Z");
 
         // first window starts here
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "1", start.toEpochMilli()));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "2", start.plus(1, ChronoUnit.MINUTES).toEpochMilli()));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "3", start.plus(2, ChronoUnit.MINUTES).toEpochMilli()));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "4", start.plus(3, ChronoUnit.MINUTES).toEpochMilli()));
+        inputTopic.pipeInput("a", "1", start.toEpochMilli());
+        inputTopic.pipeInput("a", "2", start.plus(1, ChronoUnit.MINUTES).toEpochMilli());
+        inputTopic.pipeInput("a", "3", start.plus(2, ChronoUnit.MINUTES).toEpochMilli());
+        inputTopic.pipeInput("a", "4", start.plus(3, ChronoUnit.MINUTES).toEpochMilli());
 
         // second window starts here
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "5", start.plus(5, ChronoUnit.MINUTES).toEpochMilli()));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "6", start.plus(6, ChronoUnit.MINUTES).toEpochMilli()));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "7", start.plus(7, ChronoUnit.MINUTES).toEpochMilli()));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "8", start.plus(8, ChronoUnit.MINUTES).toEpochMilli()));
+        inputTopic.pipeInput("a", "5", start.plus(5, ChronoUnit.MINUTES).toEpochMilli());
+        inputTopic.pipeInput("a", "6", start.plus(6, ChronoUnit.MINUTES).toEpochMilli());
+        inputTopic.pipeInput("a", "7", start.plus(7, ChronoUnit.MINUTES).toEpochMilli());
+        inputTopic.pipeInput("a", "8", start.plus(8, ChronoUnit.MINUTES).toEpochMilli());
 
         // third window
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "10", start.plus(10, ChronoUnit.MINUTES).toEpochMilli()));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "11", start.plus(11, ChronoUnit.MINUTES).toEpochMilli()));
+        inputTopic.pipeInput("a", "10", start.plus(10, ChronoUnit.MINUTES).toEpochMilli());
+        inputTopic.pipeInput("a", "11", start.plus(11, ChronoUnit.MINUTES).toEpochMilli());
 
         // late arrival
 
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "9", start.plus(9, ChronoUnit.MINUTES).toEpochMilli()));
+        inputTopic.pipeInput("a", "9", start.plus(9, ChronoUnit.MINUTES).toEpochMilli());
 
         // fourth window
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "20", start.plus(20, ChronoUnit.MINUTES).toEpochMilli()));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "21", start.plus(21, ChronoUnit.MINUTES).toEpochMilli()));
+        inputTopic.pipeInput("a", "20", start.plus(20, ChronoUnit.MINUTES).toEpochMilli());
+        inputTopic.pipeInput("a", "21", start.plus(21, ChronoUnit.MINUTES).toEpochMilli());
 
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "2 Days", start.plus(2, ChronoUnit.DAYS).toEpochMilli()));
+        inputTopic.pipeInput("a", "2 Days", start.plus(2, ChronoUnit.DAYS).toEpochMilli());
 
         // beyond the implicit grace period of 1 day
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "12", start.plus(12, ChronoUnit.MINUTES).toEpochMilli()));
+        inputTopic.pipeInput("a", "12", start.plus(12, ChronoUnit.MINUTES).toEpochMilli());
 
+        var stringDeserializer = new StringDeserializer();
+        var outputTopic = testDriver.createOutputTopic(OUTPUT_TOPIC, stringDeserializer, stringDeserializer);
 
-        OutputVerifier.compareValue(readNextRecord(), "1,2,3,4");
-        OutputVerifier.compareValue(readNextRecord(), "5,6,7,8,9");
-
-        OutputVerifier.compareValue(readNextRecord(), "10,11");
-
-        OutputVerifier.compareValue(readNextRecord(), "20,21");
+        assertThat(outputTopic.readValue()).isEqualTo("1,2,3,4");
+        assertThat(outputTopic.readValue()).isEqualTo("5,6,7,8,9");
+        assertThat(outputTopic.readValue()).isEqualTo("10,11");
+        assertThat(outputTopic.readValue()).isEqualTo("20,21");
 
         // 2 days is not completed yet, nothing to emit from the suppression
-        assertNull(readNextRecord());
+        assertThat(outputTopic.isEmpty()).isTrue();
     }
 
-    private ProducerRecord<String, String> readNextRecord() {
-        return testDriver.readOutput(OUTPUT_TOPIC, stringDeserializer, stringDeserializer);
-    }
 }
