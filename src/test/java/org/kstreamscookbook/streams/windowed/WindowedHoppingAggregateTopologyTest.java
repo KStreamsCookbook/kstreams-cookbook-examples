@@ -1,13 +1,12 @@
 package org.kstreamscookbook.streams.windowed;
 
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.TimeWindows;
 import org.apache.kafka.streams.processor.LogAndSkipOnInvalidTimestamp;
-import org.apache.kafka.streams.test.ConsumerRecordFactory;
 import org.apache.kafka.streams.test.OutputVerifier;
 import org.junit.jupiter.api.Test;
 import org.kstreamscookbook.TopologyTestBase;
@@ -19,14 +18,9 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class WindowedHoppingAggregateTopologyTest extends TopologyTestBase {
-  public static final String INPUT_TOPIC = "input-topic";
-  public static final String OUTPUT_TOPIC = "output-topic";
-
-  private StringSerializer stringSerializer = new StringSerializer();
-  private StringDeserializer stringDeserializer = new StringDeserializer();
 
   Instant start = Instant.parse("2019-04-20T10:35:00.00Z");
 
@@ -51,43 +45,43 @@ public class WindowedHoppingAggregateTopologyTest extends TopologyTestBase {
 
   @Test
   public void testWindowedAggregation() {
-    var factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
+    var stringSerializer = new StringSerializer();
+    var inputTopic = testDriver.createInputTopic(INPUT_TOPIC, stringSerializer, stringSerializer);
 
     // first window starts here
-    testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "0", start.toEpochMilli()));
-    testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "60s", start.plus(60, ChronoUnit.SECONDS).toEpochMilli()));
+    inputTopic.pipeInput("a", "0", start.toEpochMilli());
+    inputTopic.pipeInput("a", "60s", start.plus(60, ChronoUnit.SECONDS).toEpochMilli());
     // second window starts here
-    testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "90s", start.plus(90, ChronoUnit.SECONDS).toEpochMilli()));
+    inputTopic.pipeInput("a", "90s", start.plus(90, ChronoUnit.SECONDS).toEpochMilli());
     // late arriving message for first window
-    testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "45s (late)", start.plus(45, ChronoUnit.SECONDS).toEpochMilli()));
+    inputTopic.pipeInput("a", "45s (late)", start.plus(45, ChronoUnit.SECONDS).toEpochMilli());
 
-    testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "120s", start.plus(120, ChronoUnit.SECONDS).toEpochMilli()));
+    inputTopic.pipeInput("a", "120s", start.plus(120, ChronoUnit.SECONDS).toEpochMilli());
 
+    var stringDeserializer = new StringDeserializer();
+    var outputTopic = testDriver.createOutputTopic(OUTPUT_TOPIC, stringDeserializer, stringDeserializer);
 
-    OutputVerifier.compareKeyValue(readNextRecord(), "a@(-120,60)", "0");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a@(-60,120)", "0");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a@(0,180)", "0");
+    assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a@(-120,60)", "0"));
+    assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a@(-60,120)", "0"));
+    assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a@(0,180)", "0"));
 
-    OutputVerifier.compareKeyValue(readNextRecord(), "a@(-60,120)", "0,60s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a@(0,180)", "0,60s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a@(60,240)", "60s");
+    assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a@(-60,120)", "0,60s"));
+    assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a@(0,180)", "0,60s"));
+    assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a@(60,240)", "60s"));
 
-    OutputVerifier.compareKeyValue(readNextRecord(), "a@(-60,120)", "0,60s,90s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a@(0,180)", "0,60s,90s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a@(60,240)", "60s,90s");
+    assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a@(-60,120)", "0,60s,90s"));
+    assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a@(0,180)", "0,60s,90s"));
+    assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a@(60,240)", "60s,90s"));
 
-    OutputVerifier.compareKeyValue(readNextRecord(), "a@(-120,60)", "0,45s (late)");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a@(-60,120)", "0,60s,90s,45s (late)");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a@(0,180)", "0,60s,90s,45s (late)");
+    assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a@(-120,60)", "0,45s (late)"));
+    assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a@(-60,120)", "0,60s,90s,45s (late)"));
+    assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a@(0,180)", "0,60s,90s,45s (late)"));
 
-    OutputVerifier.compareKeyValue(readNextRecord(), "a@(0,180)", "0,60s,90s,45s (late),120s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a@(60,240)", "60s,90s,120s");
-    OutputVerifier.compareKeyValue(readNextRecord(), "a@(120,300)", "120s");
+    assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a@(0,180)", "0,60s,90s,45s (late),120s"));
+    assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a@(60,240)", "60s,90s,120s"));
+    assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a@(120,300)", "120s"));
 
-    assertNull(readNextRecord());
+    assertThat(outputTopic.isEmpty()).isTrue();
   }
 
-  private ProducerRecord<String, String> readNextRecord() {
-    return testDriver.readOutput(OUTPUT_TOPIC, stringDeserializer, stringDeserializer);
-  }
 }
