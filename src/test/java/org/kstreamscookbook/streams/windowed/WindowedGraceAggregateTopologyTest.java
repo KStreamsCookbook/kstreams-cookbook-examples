@@ -3,6 +3,7 @@ package org.kstreamscookbook.streams.windowed;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.TimeWindows;
@@ -19,15 +20,10 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 class WindowedGraceAggregateTopologyTest extends TopologyTestBase {
-
-    public static final String INPUT_TOPIC = "input-topic";
-    public static final String OUTPUT_TOPIC = "output-topic";
-
-    private StringSerializer stringSerializer = new StringSerializer();
-    private StringDeserializer stringDeserializer = new StringDeserializer();
 
     private Instant start = Instant.parse("2019-04-20T10:35:00.00Z");
 
@@ -51,35 +47,35 @@ class WindowedGraceAggregateTopologyTest extends TopologyTestBase {
 
     @Test
     public void testWindowedAggregation() {
-        var factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
+        var stringSerializer = new StringSerializer();
+        var inputTopic = testDriver.createInputTopic(INPUT_TOPIC, stringSerializer, stringSerializer);
 
         // first window starts here
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "0s", start.toEpochMilli()));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "60s", start.plus(60, ChronoUnit.SECONDS).toEpochMilli()));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "120s", start.plus(120, ChronoUnit.SECONDS).toEpochMilli()));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "180s", start.plus(180, ChronoUnit.SECONDS).toEpochMilli()));
+        inputTopic.pipeInput("a", "0s", start.toEpochMilli());
+        inputTopic.pipeInput("a", "60s", start.plus(60, ChronoUnit.SECONDS).toEpochMilli());
+        inputTopic.pipeInput("a", "120s", start.plus(120, ChronoUnit.SECONDS).toEpochMilli());
+        inputTopic.pipeInput("a", "180s", start.plus(180, ChronoUnit.SECONDS).toEpochMilli());
         // second window starts here
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "300s", start.plus(300, ChronoUnit.SECONDS).toEpochMilli()));
+        inputTopic.pipeInput("a", "300s", start.plus(300, ChronoUnit.SECONDS).toEpochMilli());
         // late arriving message for first window
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "240s (late)", start.plus(240, ChronoUnit.SECONDS).toEpochMilli()));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "360s", start.plus(360, ChronoUnit.SECONDS).toEpochMilli()));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "420s", start.plus(420, ChronoUnit.SECONDS).toEpochMilli()));
+        inputTopic.pipeInput("a", "240s (late)", start.plus(240, ChronoUnit.SECONDS).toEpochMilli());
+        inputTopic.pipeInput("a", "360s", start.plus(360, ChronoUnit.SECONDS).toEpochMilli());
+        inputTopic.pipeInput("a", "420s", start.plus(420, ChronoUnit.SECONDS).toEpochMilli());
 
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "240s (too late)", start.plus(4, ChronoUnit.SECONDS).toEpochMilli()));
+        inputTopic.pipeInput("a", "240s (too late)", start.plus(4, ChronoUnit.SECONDS).toEpochMilli());
 
-        OutputVerifier.compareKeyValue(readNextRecord(), "a@(0,300)","0s");
-        OutputVerifier.compareKeyValue(readNextRecord(), "a@(0,300)","0s,60s");
-        OutputVerifier.compareKeyValue(readNextRecord(), "a@(0,300)","0s,60s,120s");
-        OutputVerifier.compareKeyValue(readNextRecord(), "a@(0,300)","0s,60s,120s,180s");
-        OutputVerifier.compareKeyValue(readNextRecord(), "a@(300,600)","300s");
-        OutputVerifier.compareKeyValue(readNextRecord(), "a@(0,300)","0s,60s,120s,180s,240s (late)");
-        OutputVerifier.compareKeyValue(readNextRecord(), "a@(300,600)","300s,360s");
-        OutputVerifier.compareKeyValue(readNextRecord(), "a@(300,600)","300s,360s,420s");
+        var stringDeserializer = new StringDeserializer();
+        var outputTopic = testDriver.createOutputTopic(OUTPUT_TOPIC, stringDeserializer, stringDeserializer);
 
-        assertNull(readNextRecord());
-    }
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a@(0,300)","0s"));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a@(0,300)","0s,60s"));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a@(0,300)","0s,60s,120s"));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a@(0,300)","0s,60s,120s,180s"));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a@(300,600)","300s"));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a@(0,300)","0s,60s,120s,180s,240s (late)"));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a@(300,600)","300s,360s"));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a@(300,600)","300s,360s,420s"));
 
-    private ProducerRecord<String, String> readNextRecord() {
-        return testDriver.readOutput(OUTPUT_TOPIC, stringDeserializer, stringDeserializer);
+        assertThat(outputTopic.isEmpty()).isTrue();
     }
 }
