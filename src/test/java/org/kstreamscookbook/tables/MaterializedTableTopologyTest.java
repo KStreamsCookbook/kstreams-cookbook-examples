@@ -49,5 +49,4 @@ class MaterializedTableTopologyTest extends TopologyTestBase {
         assertThat(store.get("b")).isNull(); // no record exists for the key in the state store
         assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("b", null)); // the change was emitted as expected
     }
-
 }
