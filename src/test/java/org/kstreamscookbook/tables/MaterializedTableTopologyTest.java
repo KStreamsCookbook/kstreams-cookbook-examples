@@ -1,24 +1,19 @@
 package org.kstreamscookbook.tables;
 
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.state.KeyValueStore;
-import org.apache.kafka.streams.test.ConsumerRecordFactory;
 import org.apache.kafka.streams.test.OutputVerifier;
 import org.junit.jupiter.api.Test;
 import org.kstreamscookbook.TopologyTestBase;
 
 import java.util.function.Supplier;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class MaterializedTableTopologyTest extends TopologyTestBase {
-
-    public static final String INPUT_TOPIC = "input-topic";
-    public static final String OUTPUT_TOPIC = "output-topic";
 
     @Override
     protected Supplier<Topology> withTopology() {
@@ -28,35 +23,32 @@ class MaterializedTableTopologyTest extends TopologyTestBase {
     @Test
     void testCopied() {
         var stringSerializer = new StringSerializer();
-        var factory = new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
+        var inputTopic = testDriver.createInputTopic(INPUT_TOPIC, stringSerializer, stringSerializer);
 
         // NOTE: you have to keep using the topic name when sending String keys to distinguish between
         // factory.create(K, V) and factory.create(topicName:String, V)
         // otherwise you can set the topic name when creating the ConsumerRecordFactory
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "one"));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "b", "one"));
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "a", "two"));
+        inputTopic.pipeInput("a", "one");
+        inputTopic.pipeInput("b", "one");
+        inputTopic.pipeInput("a", "two");
 
-        expectNextKVPair("a", "one");
-        expectNextKVPair("b", "one");
-        expectNextKVPair("a", "two");
+        var stringDeserializer = new StringDeserializer();
+        var outputTopic = testDriver.createOutputTopic(OUTPUT_TOPIC, stringDeserializer, stringDeserializer);
+
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a", "one"));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("b", "one"));
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a", "two"));
 
         // check that the underlying state store contains the latest value for each key
         KeyValueStore<String, String> store = testDriver.getKeyValueStore("my-table");
-        assertEquals("two", store.get("a"));
-        assertEquals("one", store.get("b"));
+        assertThat("two").isEqualTo(store.get("a"));
+        assertThat("one").isEqualTo(store.get("b"));
 
         // pass in a tombstone
-        testDriver.pipeInput(factory.create(INPUT_TOPIC, "b", (String) null));
-        assertNull(store.get("b")); // no record exists for the key in the state store
-        expectNextKVPair("b", null); // the change was emitted as expected
-    }
+        inputTopic.pipeInput("b", (String) null);
 
-    // TODO refactor this out to make it consistent with other tests
-    private void expectNextKVPair(String k, String v) {
-        var stringDeserializer = new StringDeserializer();
-        var producerRecord = testDriver.readOutput(OUTPUT_TOPIC, stringDeserializer, stringDeserializer);
-        OutputVerifier.compareKeyValue(producerRecord, k, v);
+        assertThat(store.get("b")).isNull(); // no record exists for the key in the state store
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("b", null)); // the change was emitted as expected
     }
 
 }
