@@ -5,7 +5,6 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.state.KeyValueStore;
-import org.apache.kafka.streams.test.OutputVerifier;
 import org.junit.jupiter.api.Test;
 import org.kstreamscookbook.TopologyTestBase;
 
