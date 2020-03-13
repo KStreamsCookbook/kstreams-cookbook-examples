@@ -43,8 +43,8 @@ public class SessionWindowAppDriver {
         }));
 
         // Start consumer (in separate thread)
-        new Thread(() -> consume()).start();
-        new Thread(() -> produce()).start();
+        new Thread(this::consume).start();
+        new Thread(this::produce).start();
 
         try {
             latch.await();
@@ -66,7 +66,7 @@ public class SessionWindowAppDriver {
 
         System.out.println("Hello from the consumer");
 
-        final KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(consumerProps);
+        final KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps);
         consumer.subscribe(Collections.singleton(SessionWindowApp.OUTPUT_TOPIC));
         while (consumerRunning) {
             final ConsumerRecords<String,String> records = consumer.poll(Duration.ofMillis(Long.MAX_VALUE));
@@ -84,14 +84,14 @@ public class SessionWindowAppDriver {
 
         System.out.println("Hello from the producer");
 
-        final KafkaProducer<String, String> producer = new KafkaProducer<String, String>(producerProps, serial, serial);
+        final KafkaProducer<String, String> producer = new KafkaProducer<>(producerProps, serial, serial);
 
         // produce one record every few seconds
         var random = new Random();
-        Integer counter  = 0;
+        var counter  = 0;
 
         while (producerRunning) {
-            producer.send(new ProducerRecord<>(SessionWindowApp.INPUT_TOPIC, "a", counter.toString() + "s"));
+            producer.send(new ProducerRecord<>(SessionWindowApp.INPUT_TOPIC, "a", counter + "s"));
             int gap = 1 + random.nextInt(9); // up to 10 seconds, 5 is the sessionWindow
 
             counter += gap;
