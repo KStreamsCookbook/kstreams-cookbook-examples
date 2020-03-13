@@ -24,13 +24,11 @@ class MaterializedTableTopologyTest extends TopologyTestBase {
         var stringSerializer = new StringSerializer();
         var inputTopic = testDriver.createInputTopic(INPUT_TOPIC, stringSerializer, stringSerializer);
 
-        // NOTE: you have to keep using the topic name when sending String keys to distinguish between
-        // factory.create(K, V) and factory.create(topicName:String, V)
-        // otherwise you can set the topic name when creating the ConsumerRecordFactory
         inputTopic.pipeInput("a", "one");
         inputTopic.pipeInput("b", "one");
         inputTopic.pipeInput("a", "two");
 
+        // Read from the resulting stream
         var stringDeserializer = new StringDeserializer();
         var outputTopic = testDriver.createOutputTopic(OUTPUT_TOPIC, stringDeserializer, stringDeserializer);
 
@@ -38,12 +36,12 @@ class MaterializedTableTopologyTest extends TopologyTestBase {
         assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("b", "one"));
         assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a", "two"));
 
-        // check that the underlying state store contains the latest value for each key
+        // Check that the underlying state store contains the latest value for each key
         KeyValueStore<String, String> store = testDriver.getKeyValueStore("my-table");
         assertThat("two").isEqualTo(store.get("a"));
         assertThat("one").isEqualTo(store.get("b"));
 
-        // pass in a tombstone
+        // Pass in a tombstone
         inputTopic.pipeInput("b", (String) null);
 
         assertThat(store.get("b")).isNull(); // no record exists for the key in the state store
