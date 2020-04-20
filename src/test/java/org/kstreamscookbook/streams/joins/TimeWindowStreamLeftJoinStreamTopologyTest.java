@@ -16,7 +16,7 @@ import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class TimeWindowStreamInnerJoinStreamTopologyTest extends TopologyTestBase {
+public class TimeWindowStreamLeftJoinStreamTopologyTest extends TopologyTestBase {
     private final static String LEFT_TOPIC = "left-topic";
     private final static String RIGHT_TOPIC = "right-topic";
 
@@ -24,7 +24,7 @@ public class TimeWindowStreamInnerJoinStreamTopologyTest extends TopologyTestBas
 
     @Override
     protected Supplier<Topology> withTopology() {
-        return new TimeWindowStreamJoinStreamTopology(JoinMethod.INNER_JOIN, LEFT_TOPIC, RIGHT_TOPIC, OUTPUT_TOPIC);
+        return new TimeWindowStreamJoinStreamTopology(JoinMethod.LEFT_JOIN, LEFT_TOPIC, RIGHT_TOPIC, OUTPUT_TOPIC);
     }
 
     @Override
@@ -60,11 +60,16 @@ public class TimeWindowStreamInnerJoinStreamTopologyTest extends TopologyTestBas
         var stringDeserializer = new StringDeserializer();
         var outputTopic = testDriver.createOutputTopic(OUTPUT_TOPIC, stringDeserializer, stringDeserializer);
 
+        // extra output for leftJoin - emitted without a right match
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a", "1<"));
+
         assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a", "1<>1"));
         assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("a", "1<>2"));
 
         assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("b", "3<>3"));
         assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("b", "4<>3"));
+
+        assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("b", "5<"));
 
         // nothing to see here
         assertThat(outputTopic.isEmpty()).isTrue();
@@ -72,6 +77,7 @@ public class TimeWindowStreamInnerJoinStreamTopologyTest extends TopologyTestBas
         // late arrival
         leftTopic.pipeInput("b", "5<", timeOffset(6));
 
+        // extra output for leftJoin - emitted without a right match
         assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("b", "5<>3"));
     }
 
