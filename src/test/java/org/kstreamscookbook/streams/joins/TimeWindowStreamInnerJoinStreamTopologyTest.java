@@ -27,17 +27,6 @@ public class TimeWindowStreamInnerJoinStreamTopologyTest extends TopologyTestBas
         return new TimeWindowStreamJoinStreamTopology(JoinMethod.INNER_JOIN, LEFT_TOPIC, RIGHT_TOPIC, OUTPUT_TOPIC);
     }
 
-    @Override
-    protected Map<String, String> withProperties() {
-        // Use the timestamp of the message for windowing purposes.
-        // The following classes are available to extract this timestamp, they vary on how they handle invalid timestamps:
-        //
-        // FailOnInvalidTimestamp - throws an exception
-        // LogAndSkipOnInvalidTimestamp - logs a warning that the message will be discarded
-        // UsePreviousTimeOnInvalidTimestamp - the latest extracted valid timestamp of the current record's partition
-        return Collections.singletonMap(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, LogAndSkipOnInvalidTimestamp.class.getName());
-    }
-
     @Test
     public void testStreamLeftJoinStream() {
         var stringSerializer = new StringSerializer();

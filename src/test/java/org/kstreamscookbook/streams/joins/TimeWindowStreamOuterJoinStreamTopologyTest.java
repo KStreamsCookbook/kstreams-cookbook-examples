@@ -27,17 +27,6 @@ public class TimeWindowStreamOuterJoinStreamTopologyTest extends TopologyTestBas
         return new TimeWindowStreamJoinStreamTopology(JoinMethod.OUTER_JOIN, LEFT_TOPIC, RIGHT_TOPIC, OUTPUT_TOPIC);
     }
 
-    @Override
-    protected Map<String, String> withProperties() {
-        // Use the timestamp of the message for windowing purposes.
-        // The following classes are available to extract this timestamp, they vary on how they handle invalid timestamps:
-        //
-        // FailOnInvalidTimestamp - throws an exception
-        // LogAndSkipOnInvalidTimestamp - logs a warning that the message will be discarded
-        // UsePreviousTimeOnInvalidTimestamp - the latest extracted valid timestamp of the current record's partition
-        return Collections.singletonMap(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, LogAndSkipOnInvalidTimestamp.class.getName());
-    }
-
     @Test
     public void testStreamLeftJoinStream() {
         var stringSerializer = new StringSerializer();
@@ -72,6 +61,7 @@ public class TimeWindowStreamOuterJoinStreamTopologyTest extends TopologyTestBas
         assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("b", "3<>3"));
         assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("b", "4<>3"));
 
+        // extra output for leftJoin - emitted without a right match
         assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("b", "5<"));
 
         // nothing to see here
@@ -80,7 +70,6 @@ public class TimeWindowStreamOuterJoinStreamTopologyTest extends TopologyTestBas
         // late arrival
         leftTopic.pipeInput("b", "5<", timeOffset(6));
 
-        // extra output for leftJoin - emitted without a right match
         assertThat(outputTopic.readKeyValue()).isEqualTo(new KeyValue<>("b", "5<>3"));
     }
 
