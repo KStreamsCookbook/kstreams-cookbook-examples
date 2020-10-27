@@ -10,6 +10,7 @@
     <modules>
         <module>data-model</module>
         <module>examples</module>
+        <module>spring-app</module>
     </modules>
 
 </project>
