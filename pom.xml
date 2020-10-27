@@ -8,7 +8,7 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>schemas</module>
+        <module>data-model</module>
         <module>examples</module>
     </modules>
 
