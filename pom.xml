@@ -13,7 +13,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <kafka.version>2.7.0</kafka.version>
-        <kafka-streams.version>2.7.0</kafka-streams.version>
+        <kafka-streams.version>2.6.3</kafka-streams.version>
 
         <java.version>11</java.version>
         <junit.jupiter.version>5.5.2</junit.jupiter.version>
